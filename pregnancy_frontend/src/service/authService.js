@@ -25,11 +25,23 @@
 
 // export default authService;
 const authService = {
+    // Đăng nhập bằng tài khoản cứng
     login: async (email, password) => {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                if (email === "test@example.com" && password === "123456") {
-                    resolve({ data: { token: "fake-jwt-token" } });
+                // Tài khoản cứng
+                const hardcodedUser = {
+                    email: "admin@example.com",
+                    password: "123456",
+                    role: "admin"
+                };
+                if (email === hardcodedUser.email && password === hardcodedUser.password) {
+                    // Lưu token giả vào localStorage
+                    localStorage.setItem("authToken", "fake-jwt-token");
+                    localStorage.setItem("userRole", hardcodedUser.role);
+                    localStorage.setItem("userEmail", hardcodedUser.email);
+
+                    resolve({ data: { token: "fake-jwt-token", user: hardcodedUser } });
                 } else {
                     reject({ response: { data: { message: "Invalid email or password" } } });
                 }
@@ -37,16 +49,21 @@ const authService = {
         });
     },
 
-    register: async (fullName, dob, email, password, role, phone) => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (email !== "existing@example.com") {
-                    resolve({ data: { token: "fake-jwt-token" } });
-                } else {
-                    reject({ response: { data: { message: "Email already registered" } } });
-                }
-            }, 1000);
-        });
+    // Kiểm tra xem có đang đăng nhập không
+    isAuthenticated: () => {
+        return localStorage.getItem("authToken") !== null;
+    },
+
+    // Lấy role của user
+    getUserRole: () => {
+        return localStorage.getItem("userRole");
+    },
+
+    // Đăng xuất
+    logout: () => {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userEmail");
     }
 };
 

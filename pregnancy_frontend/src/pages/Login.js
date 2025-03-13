@@ -3,24 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogTitle, DialogContent, IconButton, TextField, Button, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import Register from "./Register";
+import authService from "../service/authService";
 import logo from "../assets/Pregnancy.png";
 
-function Login({ onLoginSuccess }) {
+function Login() {
     const navigate = useNavigate();
     const [openRegister, setOpenRegister] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
+    const [loginError, setLoginError] = useState(""); // Lỗi đăng nhập
 
     const validateEmail = (email) => /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email);
     const validatePassword = (password) => password.length >= 6;
 
-    const handleSubmit = (e) => {
-        e.preventDefault(); // Ngăn chặn load lại trang
-        let isValid = true;
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         setEmailError("");
         setPasswordError("");
+        setLoginError("");
+
+        let isValid = true;
 
         if (!validateEmail(email)) {
             setEmailError("Please enter a valid email.");
@@ -33,7 +37,13 @@ function Login({ onLoginSuccess }) {
         }
 
         if (isValid) {
-            navigate("/dashboard");
+            try {
+                const response = await authService.login(email, password);
+                console.log("Login Success:", response.data);
+                navigate("/dashboard"); // Chuyển hướng sau khi đăng nhập thành công
+            } catch (err) {
+                setLoginError("Invalid email or password");
+            }
         }
     };
 
@@ -51,7 +61,6 @@ function Login({ onLoginSuccess }) {
                     <img src={logo} alt="Logo" style={styles.logo} />
                 </div>
 
-                {/* Bọc form để đảm bảo submit đúng */}
                 <form onSubmit={handleSubmit}>
                     <TextField
                         label="Email"
@@ -76,6 +85,8 @@ function Login({ onLoginSuccess }) {
                         error={!!passwordError}
                         helperText={passwordError}
                     />
+
+                    {loginError && <Typography color="error">{loginError}</Typography>}
 
                     <Button
                         variant="contained"

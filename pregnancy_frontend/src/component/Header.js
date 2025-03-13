@@ -1,4 +1,3 @@
-// Header.js
 import React from "react";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -7,27 +6,38 @@ const Header = () => {
     const navigate = useNavigate();
     const userEmail = localStorage.getItem("userEmail");
 
+    const handleLogout = () => {
+        localStorage.removeItem("userEmail"); // Xóa thông tin user
+        navigate("/login"); // Quay về trang login
+    };
+
     return (
-        <AppBar position="static" sx={{ backgroundColor: "#1976d2" }}>
+        <AppBar position="static" sx={{ backgroundColor: "#F48FB1" }}>
             <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-                {/* Login & Sign Up buttons or Welcome message */}
                 <Box>
                     {userEmail ? (
-                        <Typography color="inherit">Welcome, {userEmail}</Typography>
+                        <>
+                            <Typography color="inherit" sx={{ fontWeight: "bold" }}>
+                                Welcome, {userEmail}
+                            </Typography>
+                            <Button color="inherit" onClick={handleLogout} sx={{ marginLeft: 2 }}>
+                                Logout
+                            </Button>
+                        </>
                     ) : (
                         <>
-                            <Button color="inherit" onClick={() => navigate("/login")}>Login</Button>
-                            <Button color="inherit" onClick={() => navigate("/signup")}>Sign Up</Button>
+                            <Button color="inherit" onClick={() => navigate("/login")}>
+                                Login
+                            </Button>
+                            <Button color="inherit" onClick={() => navigate("/register")}>
+                                Sign Up
+                            </Button>
                         </>
                     )}
                 </Box>
-
-                {/* Centered Logo */}
                 <Typography variant="h6" sx={{ flexGrow: 1, textAlign: "center", fontWeight: "bold" }}>
-                    Pregnancy App
+                    Pregnancy Tracker
                 </Typography>
-
-                {/* Empty box to balance layout */}
                 <Box sx={{ width: "120px" }}></Box>
             </Toolbar>
         </AppBar>
