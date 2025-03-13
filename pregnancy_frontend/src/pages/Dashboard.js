@@ -1,13 +1,20 @@
-import React from 'react';
+import React from "react";
+import { Box, CssBaseline } from "@mui/material";
+import Sidebar from "../component/Sidebar";
+import Header from "../component/Header";
+import Maindashboard from "../component/Maindashboard";
 
-function Dashboard() {
+const Dashboard = () => {
     return (
-        <div>
-            <h1>Dashboard</h1>
-            <p>Welcome to your dashboard!</p>
-            {/* Nội dung dashboard */}
-        </div>
+        <Box sx={{ display: "flex" }}>
+            <CssBaseline />
+            <Sidebar />
+            <Box sx={{ flexGrow: 1 }}>
+                <Header />
+                <Maindashboard />
+            </Box>
+        </Box>
     );
-}
+};
 
 export default Dashboard;

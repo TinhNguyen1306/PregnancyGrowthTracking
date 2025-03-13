@@ -1,12 +1,46 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, IconButton, TextField, Button, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import Register from "./Register"; // Import trang đăng ký
+import Register from "./Register";
+import logo from "../assets/Pregnancy.png";
 
 function Home() {
     const navigate = useNavigate();
     const [openRegister, setOpenRegister] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [emailError, setEmailError] = useState(""); // Lỗi email
+    const [passwordError, setPasswordError] = useState(""); // Lỗi password
+
+    const validateEmail = (email) => {
+        const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        return regex.test(email);
+    };
+
+    const validatePassword = (password) => {
+        return password.length >= 6;
+    };
+
+    const handleLogin = () => {
+        let isValid = true;
+        setEmailError("");
+        setPasswordError("");
+
+        if (!validateEmail(email)) {
+            setEmailError("Please enter a valid email.");
+            isValid = false;
+        }
+
+        if (!validatePassword(password)) {
+            setPasswordError("Password must be at least 6 characters.");
+            isValid = false;
+        }
+
+        if (isValid) {
+            navigate("/dashboard");
+        }
+    };
 
     return (
         <div style={styles.container}>
@@ -18,20 +52,48 @@ function Home() {
             </p>
 
             <div style={styles.loginBox}>
-                <input type="email" placeholder="Email" style={styles.input} />
-                <input type="password" placeholder="Password" style={styles.input} />
-                <button style={styles.loginBtn} onClick={() => navigate("/dashboard")}>
+                {/* Logo trên form login */}
+                <div style={styles.logoContainer}>
+                    <img src={logo} alt="Logo" style={styles.logo} />
+                </div>
+                <TextField
+                    label="Email"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    error={!!emailError}
+                    helperText={emailError} // Hiển thị lỗi ngay dưới ô input
+                />
+
+                <TextField
+                    label="Password"
+                    type="password"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    error={!!passwordError}
+                    helperText={passwordError} // Hiển thị lỗi ngay dưới ô input
+                />
+
+                <Button
+                    variant="contained"
+                    sx={{ backgroundColor: "#FF4081", "&:hover": { backgroundColor: "#E73370" } }}
+                    fullWidth
+                    onClick={handleLogin}
+                >
                     Login
-                </button>
-                <p>
+                </Button>
+
+                <Typography variant="body2" style={{ marginTop: "10px" }}>
                     Don't have an account?{" "}
-                    <span
-                        style={styles.registerLink}
-                        onClick={() => setOpenRegister(true)} // Mở modal khi nhấn Register
-                    >
+                    <span style={styles.registerLink} onClick={() => setOpenRegister(true)}>
                         Register
                     </span>
-                </p>
+                </Typography>
             </div>
 
             {/* Modal Register */}
@@ -78,38 +140,24 @@ const styles = {
         fontSize: "1.1rem",
         color: "#666",
     },
+    logo: {
+        width: "80px",  // Điều chỉnh kích thước logo
+        height: "80px",
+        borderRadius: "50%", // Làm logo thành hình tròn
+        objectFit: "cover",  // Đảm bảo hình ảnh không bị méo
+    },
     loginBox: {
         background: "white",
-        padding: "50px",
+        padding: "30px",
         borderRadius: "10px",
         boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.2)",
-        width: "300px",
+        width: "350px",
         marginTop: "20px",
-    },
-    input: {
-        width: "100%",
-        padding: "10px",
-        margin: "10px 0",
-        border: "1px solid #ddd",
-        borderRadius: "5px",
-        fontSize: "1rem",
-    },
-    loginBtn: {
-        width: "100%",
-        padding: "10px",
-        backgroundColor: "#FF4081",
-        color: "white",
-        fontSize: "1rem",
-        border: "none",
-        borderRadius: "5px",
-        cursor: "pointer",
-        transition: "0.3s",
     },
     registerLink: {
         color: "#FF4081",
         fontWeight: "bold",
         cursor: "pointer",
-        transition: "0.3s",
     },
 };
 

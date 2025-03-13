@@ -4,9 +4,8 @@ import {
     Button,
     Container,
     Typography,
-    Alert,
     Box,
-    MenuItem,
+    MenuItem
 } from "@mui/material";
 import authService from "../service/authService";
 
@@ -15,19 +14,44 @@ function Register({ closeModal }) {
     const [dob, setDob] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [phone, setPhone] = useState("");
     const [role, setRole] = useState("Member");
-    const [error, setError] = useState("");
+
+    const [errors, setErrors] = useState({});
+
+    const validateInput = () => {
+        let newErrors = {};
+
+        if (!fullName.trim()) newErrors.fullName = "Full Name is required";
+        if (!dob) newErrors.dob = "Date of Birth is required";
+        if (!email.match(/^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,4}$/)) {
+            newErrors.email = "Invalid email format";
+        }
+        if (password.length < 6) {
+            newErrors.password = "Password must be at least 6 characters";
+        }
+        if (password !== confirmPassword) {
+            newErrors.confirmPassword = "Passwords do not match";
+        }
+        if (!phone.match(/^[0-9]{10,11}$/)) {
+            newErrors.phone = "Phone number must be 10-11 digits";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(""); // Xóa lỗi cũ nếu có
+        if (!validateInput()) return;
+
         try {
             const response = await authService.register(fullName, dob, email, password, role, phone);
             localStorage.setItem("token", response.data.token);
-            closeModal(); // Đóng modal khi đăng ký thành công
+            closeModal();
         } catch (error) {
-            setError(error.response?.data?.message || "Registration failed");
+            setErrors({ global: error.response?.data?.message || "Registration failed" });
         }
     };
 
@@ -41,10 +65,6 @@ function Register({ closeModal }) {
                     boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.2)",
                 }}
             >
-                <Typography variant="h5" align="center" gutterBottom>
-                    Register
-                </Typography>
-                {error && <Alert severity="error">{error}</Alert>}
                 <form onSubmit={handleSubmit}>
                     <TextField
                         label="Full Name"
@@ -53,7 +73,8 @@ function Register({ closeModal }) {
                         margin="normal"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        required
+                        error={!!errors.fullName}
+                        helperText={errors.fullName}
                     />
                     <TextField
                         label="Date of Birth"
@@ -64,7 +85,8 @@ function Register({ closeModal }) {
                         value={dob}
                         onChange={(e) => setDob(e.target.value)}
                         InputLabelProps={{ shrink: true }}
-                        required
+                        error={!!errors.dob}
+                        helperText={errors.dob}
                     />
                     <TextField
                         label="Email"
@@ -73,7 +95,8 @@ function Register({ closeModal }) {
                         margin="normal"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        required
+                        error={!!errors.email}
+                        helperText={errors.email}
                     />
                     <TextField
                         label="Password"
@@ -83,7 +106,19 @@ function Register({ closeModal }) {
                         margin="normal"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required
+                        error={!!errors.password}
+                        helperText={errors.password}
+                    />
+                    <TextField
+                        label="Confirm Password"
+                        type="password"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        error={!!errors.confirmPassword}
+                        helperText={errors.confirmPassword}
                     />
                     <TextField
                         label="Phone"
@@ -92,7 +127,8 @@ function Register({ closeModal }) {
                         margin="normal"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        required
+                        error={!!errors.phone}
+                        helperText={errors.phone}
                     />
                     <TextField
                         select
@@ -102,10 +138,16 @@ function Register({ closeModal }) {
                         margin="normal"
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
-                        required
                     >
                         <MenuItem value="Member">Member</MenuItem>
                     </TextField>
+
+                    {errors.global && (
+                        <Typography color="error" align="center" sx={{ marginTop: 1 }}>
+                            {errors.global}
+                        </Typography>
+                    )}
+
                     <Button
                         variant="contained"
                         fullWidth
