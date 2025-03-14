@@ -1,79 +1,41 @@
-const connectDB = require('../config/db');
-const bcrypt = require('bcryptjs');
-const sql = require('mssql');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 
-const createUser = async (email, password, role, phone) => {
-    try {
-        const pool = await connectDB(); // Use connection pool
-        const hashedPassword = await bcrypt.hash(password, 10);
+const Users = sequelize.define("Users", {
+    userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    email: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+        unique: true,
+    },
+    password: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+    },
+    phone: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+        unique: true,
+    },
+    role: {
+        type: DataTypes.ENUM("User", "Admin"),
+        allowNull: false,
+    },
+    isVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+    },
+}, {
+    timestamps: false, // Vì mày đang dùng createdAt từ SQL Server, bỏ `updatedAt`
+    tableName: "dbo.Users",
+});
 
-        const result = await pool.request()
-            .input('email', sql.VarChar(255), email)
-            .input('password', sql.VarChar(255), hashedPassword)
-            .input('role', sql.VarChar(50), role)
-            .input('phone', sql.VarChar(20), phone)
-            .query(`
-        INSERT INTO Users (email, password, role, phone)
-        VALUES (@email, @password, @role, @phone);
-        SELECT SCOPE_IDENTITY() AS id;
-      `);
-
-        const id = result.recordset[0].id; // Get the generated ID
-
-        return { id, email, role, phone };
-    } catch (error) {
-        console.error('Error creating user:', error);
-        throw error;
-    }
-};
-
-
-const getUserByEmail = async (email) => {
-    try {
-        const pool = await connectDB();
-        const result = await pool.request()
-            .input('email', sql.VarChar(255), email)
-            .query(`
-                SELECT userId, email, password, role, phone
-                FROM Users
-                WHERE email = @email
-            `);
-
-        if (result.recordset.length === 0) {
-            return null;
-        }
-
-        const user = result.recordset[0];
-        return user;
-    } catch (error) {
-        console.error('Error getting user by email:', error);
-        throw error;
-    }
-};
-
-const getUserById = async (id) => {
-    try {
-        const pool = await connectDB();
-        const result = await pool.request()
-            .input('userId', sql.Int, id)
-            .query(`
-                SELECT userId, email, role, phone
-                FROM Users
-                WHERE userId = @userId
-            `);
-
-        if (result.recordset.length === 0) {
-            return null;
-        }
-
-        const user = result.recordset[0];
-        return user;
-    } catch (error) {
-        console.error('Error getting user by ID:', error);
-        throw error;
-    }
-};
-
-
-
-module.exports = { createUser, getUserByEmail, getUserById };
+module.exports = Users;

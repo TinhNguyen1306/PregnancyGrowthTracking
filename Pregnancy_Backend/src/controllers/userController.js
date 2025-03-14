@@ -1,78 +1,62 @@
-const { createUser, getUserByEmail, getUserById } = require('../models/user');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { sql, poolPromise } = require('../config/db');
+require("dotenv").config();
 
+// Đăng ký
 const registerUser = async (req, res) => {
-    const { email, password, role, phone } = req.body;
-
+    const { email, password, phone, role } = req.body;
     try {
-        const userExists = await getUserByEmail(email);
+        console.log("📌 Nhận request:", req.body);
 
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
+        // Kiểm tra kết nối DB
+        const pool = await poolPromise;
+        console.log("✅ Đã kết nối DB!");
 
-        const user = await createUser(email, password, role, phone);
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        if (user) {
-            res.status(201).json({
-                userId: user.id,
-                email: user.email,
-                role: user.role,
-                phone: user.phone,
-                token: generateToken(user.id),
-            });
-        } else {
-            res.status(400).json({ message: 'Invalid user data' });
-        }
+        // Thực hiện truy vấn
+        const result = await pool
+            .request()
+            .input("email", sql.VarChar, email)
+            .input("password", sql.VarChar, hashedPassword)
+            .input("phone", sql.VarChar, phone)
+            .input("role", sql.VarChar, role || "User")
+            .query(
+                "INSERT INTO Users (email, password, phone, role) VALUES (@email, @password, @phone, @role)"
+            );
+
+        console.log("✅ User đăng ký thành công:", result);
+        res.status(201).json({ message: "User registered successfully!" });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error' });
+        console.error("❌ Lỗi khi đăng ký:", error);
+        res.status(500).json({ error: error.message });
     }
 };
 
+
+// Đăng nhập
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
-
     try {
-        const user = await getUserByEmail(email);
+        const pool = await poolPromise;
+        const user = await pool
+            .request()
+            .input("email", sql.VarChar, email)
+            .query("SELECT * FROM Users WHERE email = @email");
 
-        if (user && (await bcrypt.compare(password, user.password))) {
-            res.json({
-                userId: user.userId,
-                email: user.email,
-                role: user.role,
-                phone: user.phone,
-                token: generateToken(user.userId),
-            });
-        } else {
-            res.status(401).json({ message: 'Invalid email or password' });
-        }
+        if (!user.recordset[0]) return res.status(400).json({ error: "User not found!" });
+
+        const validPassword = await bcrypt.compare(password, user.recordset[0].password);
+        if (!validPassword) return res.status(400).json({ error: "Invalid password!" });
+
+        const token = jwt.sign({ userId: user.recordset[0].userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+        res.json({ token, userId: user.recordset[0].userId });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ error: error.message });
     }
 };
 
-const getUserProfile = async (req, res) => {
-    try {
-        const user = await getUserById(req.user.id);
-
-        if (user) {
-            res.json(user);
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error' });
-    }
-};
-
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d',
-    });
-};
-
-module.exports = { registerUser, loginUser, getUserProfile };
+module.exports = { registerUser, loginUser };
