@@ -5,25 +5,40 @@ import {
     Container,
     Typography,
     Box,
-    MenuItem
+    MenuItem,
+    FormControl,
+    FormLabel,
+    RadioGroup,
+    FormControlLabel,
+    Radio
 } from "@mui/material";
+
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+
+
 import authService from "../service/authService";
 
 function Register({ closeModal }) {
-    const [fullName, setFullName] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [gender, setGender] = useState("");
     const [dob, setDob] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [phone, setPhone] = useState("");
-    const [role, setRole] = useState("Member");
+    const [role] = useState("User"); // Mặc định User
 
     const [errors, setErrors] = useState({});
+
+    const navigate = useNavigate();
 
     const validateInput = () => {
         let newErrors = {};
 
-        if (!fullName.trim()) newErrors.fullName = "Full Name is required";
+        if (!firstName.trim()) newErrors.firstName = "First Name is required";
+        if (!lastName.trim()) newErrors.lastName = "Last Name is required";
         if (!dob) newErrors.dob = "Date of Birth is required";
         if (!email.match(/^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,4}$/)) {
             newErrors.email = "Invalid email format";
@@ -47,14 +62,36 @@ function Register({ closeModal }) {
         if (!validateInput()) return;
 
         try {
-            const response = await authService.register(fullName, dob, email, password, role, phone);
-            localStorage.setItem("token", response.data.token);
-            closeModal();
+            const userData = {
+                firstName,
+                lastName,
+                dob,
+                email,
+                password,
+                role,
+                phone,
+                gender,
+            };
+
+            const response = await authService.register(userData);
+            console.log("Response từ API:", response);
+
+            // Hiện popup thông báo đăng ký thành công
+            Swal.fire({
+                title: "Đăng ký thành công!",
+                text: "Bạn đã đăng ký tài khoản thành công. Hãy đăng nhập để tiếp tục!",
+                icon: "success",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#FF4081"
+            }).then(() => {
+                navigate("/login"); // Chuyển sang trang đăng nhập sau khi nhấn OK
+            });
+
         } catch (error) {
-            setErrors({ global: error.response?.data?.message || "Registration failed" });
+            console.error("Registration error:", error);
+            setErrors({ global: error.message || "Registration failed" });
         }
     };
-
     return (
         <Container maxWidth="sm">
             <Box
@@ -67,15 +104,36 @@ function Register({ closeModal }) {
             >
                 <form onSubmit={handleSubmit}>
                     <TextField
-                        label="Full Name"
+                        label="First Name"
                         variant="outlined"
                         fullWidth
                         margin="normal"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        error={!!errors.fullName}
-                        helperText={errors.fullName}
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        error={!!errors.firstName}
+                        helperText={errors.firstName}
                     />
+                    <TextField
+                        label="Last Name"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        error={!!errors.lastName}
+                        helperText={errors.lastName}
+                    />
+                    <FormControl component="fieldset" margin="normal">
+                        <FormLabel component="legend">Gender</FormLabel>
+                        <RadioGroup
+                            row
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                        >
+                            <FormControlLabel value="Male" control={<Radio />} label="Male" />
+                            <FormControlLabel value="Female" control={<Radio />} label="Female" />
+                        </RadioGroup>
+                    </FormControl>
                     <TextField
                         label="Date of Birth"
                         type="date"
@@ -137,9 +195,9 @@ function Register({ closeModal }) {
                         fullWidth
                         margin="normal"
                         value={role}
-                        onChange={(e) => setRole(e.target.value)}
+                        disabled
                     >
-                        <MenuItem value="Member">Member</MenuItem>
+                        <MenuItem value="User">User</MenuItem>
                     </TextField>
 
                     {errors.global && (

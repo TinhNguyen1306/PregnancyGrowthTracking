@@ -15,6 +15,8 @@ import Register from "./Register";
 import authService from "../service/authService";
 import logo from "../assets/Pregnancy.png";
 import { UserContext } from "../context/userContext";
+import { GoogleLogin } from "@react-oauth/google";
+import Swal from "sweetalert2";
 
 function Login() {
     const navigate = useNavigate();
@@ -59,13 +61,33 @@ function Login() {
             localStorage.setItem("userInfo", JSON.stringify(user));
             login(user.email);
 
-            console.log("Login Success:", response);
-            navigate("/dashboard");
+            Swal.fire("Thành công!", "Bạn đã đăng nhập thành công!", "success").then(() => {
+                navigate("/dashboard");
+            });
         } catch (err) {
             console.error("Login failed:", err.response?.data || err.message);
             setLoginError(err.response?.data?.message || "Invalid email or password");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Xử lý khi đăng nhập bằng Google
+    const handleGoogleLogin = async (credentialResponse) => {
+        try {
+            const response = await authService.googleLogin(credentialResponse.credential);
+            const { token, user } = response;
+
+            localStorage.setItem("userToken", token);
+            localStorage.setItem("userInfo", JSON.stringify(user));
+            login(user.email);
+
+            Swal.fire("Thành công!", "Bạn đã đăng nhập bằng Google!", "success").then(() => {
+                navigate("/dashboard");
+            });
+        } catch (error) {
+            console.error("Google Login error:", error);
+            Swal.fire("Lỗi", "Không thể đăng nhập bằng Google!", "error");
         }
     };
 
@@ -146,6 +168,14 @@ function Login() {
                         {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
                     </Button>
                 </form>
+
+                <Typography variant="body2" sx={{ mt: 2 }}>
+                    Hoặc đăng nhập bằng
+                </Typography>
+
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
+                    <GoogleLogin onSuccess={handleGoogleLogin} onError={() => Swal.fire("Lỗi", "Không thể đăng nhập bằng Google!", "error")} />
+                </div>
 
                 <Typography variant="body2" sx={{ mt: 2 }}>
                     Don't have an account?{" "}

@@ -4,9 +4,14 @@ const passport = require("passport");
 require("./config/passport");
 const session = require("express-session");
 require("dotenv").config();
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+app.use((req, res, next) => {
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    next();
+});
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -22,7 +27,7 @@ app.use(passport.session());
 // Routes
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/auth", require("./routes/auth"));
-
+app.use("/api/subscription", require("./routes/subscriptionRoutes"));
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

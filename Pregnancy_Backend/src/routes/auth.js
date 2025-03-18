@@ -1,5 +1,6 @@
 const express = require("express");
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -14,7 +15,14 @@ router.get(
     "/google/callback",
     passport.authenticate("google", { failureRedirect: "/login" }),
     (req, res) => {
-        res.json({ message: "Google login successful!", user: req.user });
+        // Nếu xác thực thành công, tạo JWT token
+        const user = req.user;
+        const token = jwt.sign({ id: user.id, email: user.email }, "SECRET_KEY", {
+            expiresIn: "7d", // Token hết hạn sau 7 ngày
+        });
+
+        // Gửi token và thông tin user về FE
+        res.redirect(`http://localhost:3000/login?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`);
     }
 );
 

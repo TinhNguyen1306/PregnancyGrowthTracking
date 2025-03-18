@@ -53,7 +53,7 @@ const registerUser = async (req, res) => {
             .input("gender", sql.VarChar, gender)
             .input("subscriptionPlan", sql.Int, null) // Mặc định chưa có gói
             .input("subscriptionExpiry", sql.DateTime, null)
-            .input("isSubscribed", sql.Bit, 1)
+            .input("isSubscribed", sql.Bit, 0)
             .input("createdAt", sql.DateTime, new Date())
             .query(`
                 INSERT INTO Members (userId, firstName, lastName, gender, subscriptionPlan, subscriptionExpiry, isSubscribed, createdAt)
@@ -75,19 +75,45 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         const pool = await poolPromise;
-        const user = await pool
+
+        // Lấy thông tin từ bảng Users
+        const userResult = await pool
             .request()
             .input("email", sql.VarChar, email)
             .query("SELECT * FROM Users WHERE email = @email");
 
-        if (!user.recordset[0]) return res.status(401).json({ error: "Invalid email or password" });
+        const user = userResult.recordset[0];
+        if (!user) return res.status(401).json({ error: "Invalid email or password" });
 
-        const validPassword = await bcrypt.compare(password, user.recordset[0].password);
+        // Kiểm tra password
+        const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(401).json({ error: "Invalid email or password" });
 
-        const token = jwt.sign({ userId: user.recordset[0].userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        // Lấy thông tin từ bảng Members
+        const memberResult = await pool
+            .request()
+            .input("userId", sql.Int, user.userId)
+            .query("SELECT firstName, lastName FROM Members WHERE userId = @userId");
 
-        res.json({ message: "Login successful", token, user: user.recordset[0] });
+        const member = memberResult.recordset[0] || { firstName: null, lastName: null };
+
+        // Tạo token
+        const token = jwt.sign({ userId: user.userId, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+        // Trả về dữ liệu
+        res.json({
+            message: "Login successful",
+            token,
+            user: {
+                userId: user.userId,
+                email: user.email,
+                role: user.role,
+                phone: user.phone,
+                firstName: member.firstName,
+                lastName: member.lastName
+            }
+        });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

@@ -3,6 +3,12 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const { sql, poolPromise } = require("../config/db");
 require("dotenv").config();
 
+// Kiểm tra nếu thiếu biến môi trường quan trọng
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_CALLBACK_URL) {
+    console.error("Thiếu GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET hoặc GOOGLE_CALLBACK_URL trong .env");
+    process.exit(1);
+}
+
 passport.use(
     new GoogleStrategy(
         {
@@ -16,14 +22,16 @@ passport.use(
                 const email = profile.emails[0].value;
 
                 // Kiểm tra user có tồn tại không
-                let user = await pool
+                let result = await pool
                     .request()
                     .input("email", sql.VarChar, email)
                     .query("SELECT * FROM Users WHERE email = @email");
 
-                if (!user.recordset[0]) {
+                let user = result.recordset[0];
+
+                if (!user) {
                     // Nếu chưa có, tạo user mới
-                    const result = await pool
+                    await pool
                         .request()
                         .input("email", sql.VarChar, email)
                         .input("password", sql.VarChar, null) // Google không dùng password
@@ -33,14 +41,18 @@ passport.use(
                             "INSERT INTO Users (email, password, phone, role) VALUES (@email, @password, @phone, @role)"
                         );
 
-                    user = await pool
+                    // Truy vấn lại để lấy user mới
+                    result = await pool
                         .request()
                         .input("email", sql.VarChar, email)
                         .query("SELECT * FROM Users WHERE email = @email");
+
+                    user = result.recordset[0];
                 }
 
-                return done(null, user.recordset[0]);
+                return done(null, user);
             } catch (error) {
+                console.error("🔥 Lỗi khi xác thực Google OAuth:", error);
                 return done(error, null);
             }
         }
@@ -56,13 +68,14 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
     try {
         const pool = await poolPromise;
-        const user = await pool
+        const result = await pool
             .request()
             .input("userId", sql.Int, id)
             .query("SELECT * FROM Users WHERE userId = @userId");
 
-        done(null, user.recordset[0]);
+        done(null, result.recordset[0]);
     } catch (error) {
+        console.error("🔥 Lỗi khi deserialize user:", error);
         done(error, null);
     }
 });
