@@ -1,41 +1,31 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { sql, poolPromise } = require("../config/db");
 
-const Users = sequelize.define("Users", {
-    userId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-    },
-    email: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-        unique: true,
-    },
-    password: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-    },
-    phone: {
-        type: DataTypes.STRING(20),
-        allowNull: true,
-        unique: true,
-    },
-    role: {
-        type: DataTypes.ENUM("User", "Admin"),
-        allowNull: false,
-    },
-    isVerified: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-    },
-}, {
-    timestamps: false, // Vì mày đang dùng createdAt từ SQL Server, bỏ `updatedAt`
-    tableName: "dbo.Users",
-});
+class user {
+    // Get all users
+    static async getAllUsers() {
+        try {
+            const pool = await poolPromise;
+            const result = await pool.request().query("SELECT * FROM Users");
+            return result.recordset;
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách user:", error);
+            throw error;
+        }
+    }
 
-module.exports = Users;
+    // Get user by ID
+    static async getUserById(userId) {
+        try {
+            const pool = await poolPromise;
+            const result = await pool.request()
+                .input("userId", sql.Int, userId)
+                .query("SELECT * FROM Users WHERE userId = @userId");
+            return result.recordset[0]; // Trả về 1 user
+        } catch (error) {
+            console.error("Lỗi khi lấy user:", error);
+            throw error;
+        }
+    }
+}
+
+module.exports = user;

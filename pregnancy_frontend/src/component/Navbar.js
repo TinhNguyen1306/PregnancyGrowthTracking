@@ -1,25 +1,29 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+const Navbar = () => {
+    const [user, setUser] = useState(null);
 
-function Navbar() {
+    useEffect(() => {
+        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        setUser(userInfo);
+    }, []);
+
     return (
-        <nav>
-            <ul>
-                <li>
-                    <Link to="/">Home</Link>
-                </li>
-                <li>
-                    <Link to="/login">Login</Link>
-                </li>
-                <li>
-                    <Link to="/register">Register</Link>
-                </li>
-                <li>
-                    <Link to="/dashboard">Dashboard</Link>
-                </li>
-            </ul>
+        <nav className="navbar">
+            <div className="container">
+                <h1>Pregnancy Tracker</h1>
+                <div className="nav-links">
+                    {user ? (
+                        <div className="user-info">
+                            <img src={user.avatar || "/default-avatar.png"} alt="User Avatar" className="avatar" />
+                            <span>{user.name}</span>
+                        </div>
+                    ) : (
+                        <>
+                            <a href="/login">LOGIN</a>
+                            <a href="/register">SIGN UP</a>
+                        </>
+                    )}
+                </div>
+            </div>
         </nav>
     );
-}
-
-export default Navbar;
+};

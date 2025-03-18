@@ -1,47 +1,45 @@
-import React from "react";
+import React, { useContext } from "react";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/userContext";
+import logo from "../assets/Pregnancy.png";
 
-const Header = () => {
+function Header() {
     const navigate = useNavigate();
-    const userEmail = localStorage.getItem("userEmail");
-
-    const handleLogout = () => {
-        localStorage.removeItem("userEmail"); // Xóa thông tin user
-        navigate("/login"); // Quay về trang login
-    };
+    const { userEmail, logout } = useContext(UserContext);
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: "#F48FB1" }}>
-            <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Box>
+        <AppBar position="static" sx={{ backgroundColor: "#FF4081", padding: "10px 0" }}>
+            <Toolbar sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => navigate("/")}>
+                    <img src={logo} alt="Logo" style={{ width: "50px", height: "50px", borderRadius: "50%" }} />
+                    {/* <Typography variant="h6" sx={{ ml: 2, fontWeight: "bold" }}>Pregnancy Tracker</Typography> */}
+                </Box>
+
+                <Box sx={{ position: "absolute", right: "20px", display: "flex", alignItems: "center" }}>
                     {userEmail ? (
                         <>
-                            <Typography color="inherit" sx={{ fontWeight: "bold" }}>
-                                Welcome, {userEmail}
+                            <Typography variant="body1" sx={{ display: "inline", mr: 2 }}>
+                                {userEmail}
                             </Typography>
-                            <Button color="inherit" onClick={handleLogout} sx={{ marginLeft: 2 }}>
+                            <Button
+                                variant="contained"
+                                sx={{ backgroundColor: "#D81B60", '&:hover': { backgroundColor: "#AD1457" } }}
+                                onClick={logout}
+                            >
                                 Logout
                             </Button>
                         </>
                     ) : (
                         <>
-                            <Button color="inherit" onClick={() => navigate("/login")}>
-                                Login
-                            </Button>
-                            <Button color="inherit" onClick={() => navigate("/register")}>
-                                Sign Up
-                            </Button>
+                            <Button color="inherit" onClick={() => navigate("/login")}>Login</Button>
+                            <Button color="inherit" onClick={() => navigate("/register")}>Sign Up</Button>
                         </>
                     )}
                 </Box>
-                <Typography variant="h6" sx={{ flexGrow: 1, textAlign: "center", fontWeight: "bold" }}>
-                    Pregnancy Tracker
-                </Typography>
-                <Box sx={{ width: "120px" }}></Box>
             </Toolbar>
         </AppBar>
     );
-};
+}
 
 export default Header;

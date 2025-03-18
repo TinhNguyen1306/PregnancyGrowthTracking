@@ -1,47 +1,29 @@
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/user'); // Import model User
+const express = require("express");
+const passport = require("passport");
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "/auth/google/callback"
-},
-    async (accessToken, refreshToken, profile, done) => {
-        try {
-            // Tìm user trong database dựa trên Google ID
-            let user = await User.findOne({ googleId: profile.id });
+const router = express.Router();
 
-            if (user) {
-                // Nếu user đã tồn tại, trả về user đó
-                return done(null, user);
-            } else {
-                // Nếu user chưa tồn tại, tạo user mới
-                const newUser = new User({
-                    googleId: profile.id,
-                    email: profile.emails[0].value,
-                    name: profile.displayName,
-                    // Thêm các thông tin khác từ profile nếu cần
-                });
+// Route để bắt đầu xác thực với Google
+router.get(
+    "/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
 
-                await newUser.save();
-                return done(null, newUser);
-            }
-        } catch (err) {
-            return done(err);
-        }
+// Callback sau khi Google xác thực
+router.get(
+    "/google/callback",
+    passport.authenticate("google", { failureRedirect: "/login" }),
+    (req, res) => {
+        res.json({ message: "Google login successful!", user: req.user });
     }
-));
+);
 
-passport.serializeUser((user, done) => {
-    done(null, user.id);
+// Logout
+router.get("/logout", (req, res) => {
+    req.logout(err => {
+        if (err) return res.status(500).json({ error: "Logout failed" });
+        res.json({ message: "Logged out successfully!" });
+    });
 });
 
-passport.deserializeUser(async (id, done) => {
-    try {
-        const user = await User.findById(id);
-        done(null, user);
-    } catch (err) {
-        done(err);
-    }
-});
+module.exports = router;

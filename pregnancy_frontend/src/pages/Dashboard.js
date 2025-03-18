@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Box, CssBaseline, Typography, Button, Paper, Grid } from "@mui/material";
 import Sidebar from "../component/Sidebar";
 import Header from "../component/Header";
 import Maindashboard from "../component/Maindashboard";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/userContext"; // Import Context
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const [userEmail, setUserEmail] = useState(null);
+    const { userEmail } = useContext(UserContext);
     const [isMember, setIsMember] = useState(false);
 
     useEffect(() => {
-        const email = localStorage.getItem("userEmail");
-        setUserEmail(email);
-
-        // Giả lập kiểm tra nếu user đã có gói hội viên (tạm thời check từ localStorage)
+        // Kiểm tra trạng thái hội viên
         const memberStatus = localStorage.getItem("membership");
         setIsMember(memberStatus !== null);
     }, []);
@@ -58,9 +56,7 @@ const Dashboard = () => {
                                         Chọn gói hội viên phù hợp với bạn:
                                     </Typography>
 
-                                    {/* Danh sách gói hội viên */}
                                     <Grid container spacing={3} sx={{ marginTop: 3 }}>
-                                        {/* Gói Cơ bản */}
                                         <Grid item xs={12} sm={4}>
                                             <Paper sx={{ padding: 2, backgroundColor: "#fff", textAlign: "center" }}>
                                                 <Typography variant="h6" sx={{ fontWeight: "bold", color: "#d32f2f" }}>
@@ -75,47 +71,6 @@ const Dashboard = () => {
                                                     variant="contained"
                                                     color="secondary"
                                                     onClick={() => handleMembershipSelection("Cơ bản")}
-                                                >
-                                                    Chọn Gói
-                                                </Button>
-                                            </Paper>
-                                        </Grid>
-
-                                        {/* Gói Nâng Cao */}
-                                        <Grid item xs={12} sm={4}>
-                                            <Paper sx={{ padding: 2, backgroundColor: "#fff", textAlign: "center" }}>
-                                                <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1976d2" }}>
-                                                    Gói Nâng Cao
-                                                </Typography>
-                                                <Typography variant="body2" sx={{ marginY: 1 }}>
-                                                    Cảnh báo bất thường về thai kỳ <br />
-                                                    Nhắc nhở lịch hẹn với bác sĩ
-                                                </Typography>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={() => handleMembershipSelection("Nâng cao")}
-                                                >
-                                                    Chọn Gói
-                                                </Button>
-                                            </Paper>
-                                        </Grid>
-
-                                        {/* Gói VIP */}
-                                        <Grid item xs={12} sm={4}>
-                                            <Paper sx={{ padding: 2, backgroundColor: "#fff", textAlign: "center" }}>
-                                                <Typography variant="h6" sx={{ fontWeight: "bold", color: "#ff6f00" }}>
-                                                    Gói VIP
-                                                </Typography>
-                                                <Typography variant="body2" sx={{ marginY: 1 }}>
-                                                    Nhắc nhở mốc quan trọng <br />
-                                                    Xét nghiệm & tiêm phòng <br />
-                                                    Nhắc nhở lịch hẹn với bác sĩ
-                                                </Typography>
-                                                <Button
-                                                    variant="contained"
-                                                    color="warning"
-                                                    onClick={() => handleMembershipSelection("VIP")}
                                                 >
                                                     Chọn Gói
                                                 </Button>
