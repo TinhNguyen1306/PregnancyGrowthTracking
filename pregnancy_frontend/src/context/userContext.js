@@ -8,28 +8,44 @@ export const UserProvider = ({ children }) => {
     const [lastName, setLastName] = useState(null);
 
     useEffect(() => {
-        const savedEmail = localStorage.getItem("userEmail");
-        const savedFirstName = localStorage.getItem("firstName");
-        const savedLastName = localStorage.getItem("lastName");
+        const savedUserInfo = localStorage.getItem("userInfo");
+        if (savedUserInfo) {
+            try {
+                const user = JSON.parse(savedUserInfo);
+                // Đảm bảo email là string
+                const email = user.email && typeof user.email === 'string' ? user.email :
+                    (user.email ? String(user.email) : "");
+                setUserEmail(email);
 
-        if (savedEmail) setUserEmail(savedEmail);
-        if (savedFirstName) setFirstName(savedFirstName);
-        if (savedLastName) setLastName(savedLastName);
+                // Tương tự cho firstName và lastName
+                setFirstName(user.firstName && typeof user.firstName === 'string' ? user.firstName : "");
+                setLastName(user.lastName && typeof user.lastName === 'string' ? user.lastName : "");
+            } catch (error) {
+                console.error("Error parsing userInfo:", error);
+            }
+        }
     }, []);
+    const login = (user) => {
+        if (!user) return;
 
-    const login = (email, firstName, lastName) => {
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("firstName", firstName);
-        localStorage.setItem("lastName", lastName);
+        try {
+            localStorage.setItem("userInfo", JSON.stringify(user));
 
-        setUserEmail(email);
-        setFirstName(firstName);
-        setLastName(lastName);
+            // Đảm bảo email là string
+            const email = user.email && typeof user.email === 'string' ? user.email :
+                (user.email ? String(user.email) : "");
+            setUserEmail(email);
+
+            // Tương tự cho firstName và lastName
+            setFirstName(user.firstName && typeof user.firstName === 'string' ? user.firstName : "");
+            setLastName(user.lastName && typeof user.lastName === 'string' ? user.lastName : "");
+        } catch (error) {
+            console.error("Error in login function:", error);
+        }
     };
     const logout = () => {
-        localStorage.removeItem("userEmail");
-        localStorage.removeItem("firstName");
-        localStorage.removeItem("lastName");
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("userInfo");
 
         setUserEmail(null);
         setFirstName(null);
@@ -37,7 +53,13 @@ export const UserProvider = ({ children }) => {
     };
 
     return (
-        <UserContext.Provider value={{ userEmail, firstName, lastName, login, logout }}>
+        <UserContext.Provider value={{
+            userEmail: userEmail || "",
+            firstName: firstName || "",
+            lastName: lastName || "",
+            login,
+            logout
+        }}>
             {children}
         </UserContext.Provider>
     );

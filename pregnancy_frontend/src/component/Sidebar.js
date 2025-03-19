@@ -1,5 +1,12 @@
 import React from "react";
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import {
+    Drawer,
+    List,
+    ListItemIcon,
+    ListItemText,
+    Typography,
+    ListItemButton // Thêm import này 
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import InfoIcon from "@mui/icons-material/Info";
@@ -15,7 +22,19 @@ import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 
 const Sidebar = () => {
     const navigate = useNavigate();
-    const userRole = localStorage.getItem("userRole"); // "admin" hoặc "user"
+
+    // Lấy userRole an toàn hơn
+    const userInfo = localStorage.getItem("userInfo");
+    let userRole = "";
+
+    try {
+        if (userInfo) {
+            const parsedInfo = JSON.parse(userInfo);
+            userRole = parsedInfo.role || "";
+        }
+    } catch (error) {
+        console.error("Error parsing user info:", error);
+    }
 
     return (
         <Drawer
@@ -29,68 +48,81 @@ const Sidebar = () => {
             <List>
                 {/* Nhóm Tính Năng Chung */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Tính Năng Chung</Typography>
-                <ListItem button onClick={() => navigate("/dashboard")}>
+
+                {/* Thay đổi tất cả ListItem button thành ListItemButton */}
+                <ListItemButton onClick={() => navigate("/dashboard")}>
                     <ListItemIcon sx={{ color: "#fff" }}><DashboardIcon /></ListItemIcon>
                     <ListItemText primary="Dashboard" />
-                </ListItem>
-                <ListItem button onClick={() => navigate("/info")}>
+                </ListItemButton>
+
+                <ListItemButton onClick={() => navigate("/info")}>
                     <ListItemIcon sx={{ color: "#fff" }}><InfoIcon /></ListItemIcon>
                     <ListItemText primary="Thông tin hệ thống" />
-                </ListItem>
-                <ListItem button onClick={() => navigate("/profile")}>
+                </ListItemButton>
+
+                <ListItemButton onClick={() => navigate("/profile")}>
                     <ListItemIcon sx={{ color: "#fff" }}><AccountCircleIcon /></ListItemIcon>
                     <ListItemText primary="Quản lý tài khoản" />
-                </ListItem>
+                </ListItemButton>
 
                 {/* Nhóm Theo Dõi Thai Kỳ */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Theo Dõi Thai Kỳ</Typography>
-                <ListItem button onClick={() => navigate("/update-growth")}>
+
+                <ListItemButton onClick={() => navigate("/update-growth")}>
                     <ListItemIcon sx={{ color: "#fff" }}><MonitorWeightIcon /></ListItemIcon>
                     <ListItemText primary="Cập nhật chỉ số thai nhi" />
-                </ListItem>
-                <ListItem button onClick={() => navigate("/growth-chart")}>
+                </ListItemButton>
+
+                <ListItemButton onClick={() => navigate("/growth-chart")}>
                     <ListItemIcon sx={{ color: "#fff" }}><BarChartIcon /></ListItemIcon>
                     <ListItemText primary="Biểu đồ tăng trưởng" />
-                </ListItem>
-                <ListItem button onClick={() => navigate("/alerts")}>
+                </ListItemButton>
+
+                <ListItemButton onClick={() => navigate("/alerts")}>
                     <ListItemIcon sx={{ color: "#fff" }}><WarningIcon /></ListItemIcon>
                     <ListItemText primary="Cảnh báo phát triển" />
-                </ListItem>
+                </ListItemButton>
 
                 {/* Nhóm Nhắc Nhở & Lịch Hẹn */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Nhắc Nhở & Lịch Hẹn</Typography>
-                <ListItem button onClick={() => navigate("/appointments")}>
+
+                <ListItemButton onClick={() => navigate("/appointments")}>
                     <ListItemIcon sx={{ color: "#fff" }}><EventIcon /></ListItemIcon>
                     <ListItemText primary="Lịch khám thai" />
-                </ListItem>
-                <ListItem button onClick={() => navigate("/reminders")}>
+                </ListItemButton>
+
+                <ListItemButton onClick={() => navigate("/reminders")}>
                     <ListItemIcon sx={{ color: "#fff" }}><NotificationsIcon /></ListItemIcon>
                     <ListItemText primary="Nhắc nhở quan trọng" />
-                </ListItem>
+                </ListItemButton>
 
                 {/* Nhóm Cộng Đồng */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Cộng Đồng</Typography>
-                <ListItem button onClick={() => navigate("/forum")}>
+
+                <ListItemButton onClick={() => navigate("/forum")}>
                     <ListItemIcon sx={{ color: "#fff" }}><ForumIcon /></ListItemIcon>
                     <ListItemText primary="Diễn đàn chia sẻ" />
-                </ListItem>
+                </ListItemButton>
 
                 {/* Nhóm Admin (Chỉ Hiện Nếu Là Admin) */}
                 {userRole === "admin" && (
                     <>
                         <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Quản Lý Hệ Thống (Admin)</Typography>
-                        <ListItem button onClick={() => navigate("/manage-users")}>
+
+                        <ListItemButton onClick={() => navigate("/manage-users")}>
                             <ListItemIcon sx={{ color: "#fff" }}><AdminPanelSettingsIcon /></ListItemIcon>
                             <ListItemText primary="Quản lý thành viên" />
-                        </ListItem>
-                        <ListItem button onClick={() => navigate("/manage-subscriptions")}>
+                        </ListItemButton>
+
+                        <ListItemButton onClick={() => navigate("/manage-subscriptions")}>
                             <ListItemIcon sx={{ color: "#fff" }}><MonetizationOnIcon /></ListItemIcon>
                             <ListItemText primary="Quản lý gói phí" />
-                        </ListItem>
-                        <ListItem button onClick={() => navigate("/reports")}>
+                        </ListItemButton>
+
+                        <ListItemButton onClick={() => navigate("/reports")}>
                             <ListItemIcon sx={{ color: "#fff" }}><BarChartIcon /></ListItemIcon>
                             <ListItemText primary="Báo cáo & thống kê" />
-                        </ListItem>
+                        </ListItemButton>
                     </>
                 )}
             </List>

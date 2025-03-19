@@ -1,11 +1,15 @@
+import { useEffect, useState } from "react";
 const Navbar = () => {
     const [user, setUser] = useState(null);
-
     useEffect(() => {
-        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-        setUser(userInfo);
+        try {
+            const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+            setUser(userInfo || null);
+        } catch (error) {
+            console.error("Error parsing userInfo:", error);
+            setUser(null);
+        }
     }, []);
-
     return (
         <nav className="navbar">
             <div className="container">
@@ -13,8 +17,9 @@ const Navbar = () => {
                 <div className="nav-links">
                     {user ? (
                         <div className="user-info">
-                            <img src={user.avatar || "/default-avatar.png"} alt="User Avatar" className="avatar" />
-                            <span>{user.name}</span>
+                            {/* Lỗi: Có thể bạn đang render `user` trực tiếp ở đây */}
+                            <img src={user?.avatar || "/default-avatar.png"} alt="User Avatar" className="avatar" />
+                            <span>{user?.name || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "User"}</span>
                         </div>
                     ) : (
                         <>
@@ -27,3 +32,4 @@ const Navbar = () => {
         </nav>
     );
 };
+export default Navbar;

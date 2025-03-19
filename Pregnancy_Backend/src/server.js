@@ -4,7 +4,6 @@ const passport = require("passport");
 require("./config/passport");
 const session = require("express-session");
 require("dotenv").config();
-const subscriptionRoutes = require("./routes/subscriptionRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -28,6 +27,8 @@ app.use(passport.session());
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/auth", require("./routes/auth"));
 app.use("/api/subscription", require("./routes/subscriptionRoutes"));
+app.use("/api/fetalgrowth", require("./routes/fetalGrowthRoutes"));
+app.use("/api/fetal-growth", require("./routes/fetalGrowthRoutes"));
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

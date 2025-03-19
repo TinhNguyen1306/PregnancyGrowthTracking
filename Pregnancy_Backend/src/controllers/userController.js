@@ -98,7 +98,7 @@ const loginUser = async (req, res) => {
         const member = memberResult.recordset[0] || { firstName: null, lastName: null };
 
         // Tạo token
-        const token = jwt.sign({ userId: user.userId, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ userId: user.userId, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
         // Trả về dữ liệu
         res.json({

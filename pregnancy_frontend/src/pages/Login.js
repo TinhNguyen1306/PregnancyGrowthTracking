@@ -55,13 +55,29 @@ function Login() {
         setLoading(true);
         try {
             const response = await authService.login(email, password);
-            const { token, user } = response;
+            console.log("Full API Response:", response); // Debug toàn bộ API response
+
+            const { token, user } = response || {}; // Đề phòng response bị undefined
+            console.log("Token:", token);
+            console.log("User:", user);
+
+            if (!token || !user) throw new Error("API không trả về token hoặc user!");
 
             localStorage.setItem("userToken", token);
             localStorage.setItem("userInfo", JSON.stringify(user));
-            login(user.email);
 
-            Swal.fire("Thành công!", "Bạn đã đăng nhập thành công!", "success").then(() => {
+            console.log("Token lưu vào localStorage:", localStorage.getItem("userToken"));
+            console.log("User lưu vào localStorage:", localStorage.getItem("userInfo"));
+
+            login(user);
+
+            Swal.fire({
+                title: "Thành công!",
+                text: "Bạn đã đăng nhập thành công!",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false,
+            }).then(() => {
                 navigate("/dashboard");
             });
         } catch (err) {
@@ -72,6 +88,7 @@ function Login() {
         }
     };
 
+
     // Xử lý khi đăng nhập bằng Google
     const handleGoogleLogin = async (credentialResponse) => {
         try {
@@ -80,11 +97,19 @@ function Login() {
 
             localStorage.setItem("userToken", token);
             localStorage.setItem("userInfo", JSON.stringify(user));
-            login(user.email);
+            login(user); // Cập nhật toàn bộ thông tin user vào context
 
-            Swal.fire("Thành công!", "Bạn đã đăng nhập bằng Google!", "success").then(() => {
-                navigate("/dashboard");
+            Swal.fire({
+                title: "Thành công!",
+                text: "Bạn đã đăng nhập bằng Google!",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false
             });
+
+            setTimeout(() => {
+                navigate("/dashboard");
+            }, 1500);
         } catch (error) {
             console.error("Google Login error:", error);
             Swal.fire("Lỗi", "Không thể đăng nhập bằng Google!", "error");

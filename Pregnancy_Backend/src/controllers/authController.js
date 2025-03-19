@@ -11,7 +11,15 @@ const googleLogin = async (req, res) => {
         }
 
         // Tạo JWT Token
-        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign(
+            {
+                userId: user.userId,
+                role: user.role,
+                motherId: user.motherId || user.userId // Nếu không có motherId thì lấy userId làm mặc định
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
 
         res.json({ token, user });
     } catch (error) {
