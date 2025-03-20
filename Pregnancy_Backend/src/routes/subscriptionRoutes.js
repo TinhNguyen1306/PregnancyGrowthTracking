@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { getAllSubscriptionPlans } = require("../controllers/subscriptionPlanController");
+const { verifyToken, verifyAdmin } = require("../middleware/authMiddleware");
+const { getAllSubscriptionPlans, getSubscriptionPlanById, getUserSubscriptionByEmail, createSubscriptionPlan, updateSubscriptionPlan } = require("../controllers/subscriptionPlanController");
 
-// Không cần "/subscription-plans/all" vì nó đã được định nghĩa ở server.js
 router.get("/all", getAllSubscriptionPlans);
+router.get("/:planId", getSubscriptionPlanById);
+router.get("/user/:email", getUserSubscriptionByEmail);
+router.post("/", verifyToken, verifyAdmin, createSubscriptionPlan);
+router.put("/:planId", verifyToken, verifyAdmin, updateSubscriptionPlan);
 
 module.exports = router;

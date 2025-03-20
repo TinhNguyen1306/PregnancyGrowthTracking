@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { CircularProgress, Typography, Box } from "@mui/material"; // Thêm import từ MUI
+import { CircularProgress, Typography, Box, Grid } from "@mui/material";
+
 const FetalGrowthChart = () => {
     const [growthData, setGrowthData] = useState([]);
-    const [loading, setLoading] = useState(true); // Thêm state loading
-    const [error, setError] = useState(null); // Thêm state error
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     useEffect(() => {
         const fetchGrowthData = async () => {
             const token = localStorage.getItem("userToken");
-
             if (!token) {
                 setError("Bạn cần đăng nhập để xem biểu đồ tăng trưởng");
                 setLoading(false);
@@ -37,7 +38,7 @@ const FetalGrowthChart = () => {
         };
         fetchGrowthData();
     }, []);
-    // Hiển thị loading spinner khi đang tải dữ liệu
+
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
@@ -45,7 +46,7 @@ const FetalGrowthChart = () => {
             </Box>
         );
     }
-    // Hiển thị thông báo lỗi nếu có
+
     if (error) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
@@ -53,7 +54,7 @@ const FetalGrowthChart = () => {
             </Box>
         );
     }
-    // Hiển thị thông báo nếu không có dữ liệu
+
     if (growthData.length === 0) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
@@ -61,17 +62,38 @@ const FetalGrowthChart = () => {
             </Box>
         );
     }
-    // Hiển thị biểu đồ nếu có dữ liệu
+
     return (
-        <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={growthData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="gestationalAge" label={{ value: "Tuần thai", position: "insideBottom", offset: -5 }} />
-                <YAxis label={{ value: "Cân nặng (g)", angle: -90, position: "insideLeft" }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="weight" stroke="#8884d8" strokeWidth={2} />
-            </LineChart>
-        </ResponsiveContainer>
+        <Grid container spacing={3}>
+            {/* Biểu đồ Cân nặng */}
+            <Grid item xs={12} md={6}>
+                <Typography variant="h6" align="center">Cân nặng thai nhi</Typography>
+                <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={growthData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="gestationalAge" label={{ value: "Tuần thai", position: "insideBottom", offset: -5 }} />
+                        <YAxis label={{ value: "Cân nặng (g)", angle: -90, position: "insideLeft" }} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="weight" stroke="#8884d8" strokeWidth={2} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </Grid>
+
+            {/* Biểu đồ Chiều dài */}
+            <Grid item xs={12} md={6}>
+                <Typography variant="h6" align="center">Chiều dài thai nhi</Typography>
+                <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={growthData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="gestationalAge" label={{ value: "Tuần thai", position: "insideBottom", offset: -5 }} />
+                        <YAxis label={{ value: "Chiều dài (cm)", angle: -90, position: "insideLeft" }} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="length" stroke="#82ca9d" strokeWidth={2} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </Grid>
+        </Grid>
     );
 };
+
 export default FetalGrowthChart;

@@ -1,7 +1,7 @@
 const { sql, poolPromise } = require("../config/db");
 
-class user {
-    // Get all users
+class User {
+    // Lấy tất cả người dùng
     static async getAllUsers() {
         try {
             const pool = await poolPromise;
@@ -13,14 +13,19 @@ class user {
         }
     }
 
-    // Get user by ID
+    // Lấy thông tin user theo ID
     static async getUserById(userId) {
         try {
             const pool = await poolPromise;
             const result = await pool.request()
                 .input("userId", sql.Int, userId)
                 .query("SELECT * FROM Users WHERE userId = @userId");
-            return result.recordset[0]; // Trả về 1 user
+
+            if (result.recordset.length === 0) {
+                return null; // Trả về null nếu không tìm thấy user
+            }
+
+            return result.recordset[0];
         } catch (error) {
             console.error("Lỗi khi lấy user:", error);
             throw error;
@@ -28,4 +33,4 @@ class user {
     }
 }
 
-module.exports = user;
+module.exports = User;

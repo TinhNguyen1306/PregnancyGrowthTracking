@@ -1,32 +1,62 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const User = require("../models/user");
 
+if (!process.env.JWT_SECRET) {
+    console.error("JWT_SECRET is missing in .env file!");
+    process.exit(1);
+}
 const verifyToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-
+    const authHeader = req.header("Authorization");
     if (!authHeader) {
-        return res.status(401).json({ error: "Access Denied! No Token Provided." });
+        return res.status(401).json({ error: "Access Denied! No Authorization header" });
     }
-
-    // Kiểm tra format "Bearer <token>"
-    const parts = authHeader.split(" ");
-    if (parts.length !== 2 || parts[0] !== "Bearer") {
-        return res.status(401).json({ error: "Invalid Token Format!" });
-    }
-
-    const token = parts[1];
-
+    const token = authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : authHeader;
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Token received:", token);
 
-        console.log("Decoded Token:", decoded); // Debug xem token có `motherId` không
+        const verified = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Decoded token:", verified);
+        if (!verified || typeof verified !== 'object') {
+            return res.status(403).json({ error: "Invalid Token Structure!" });
+        }
+        req.user = verified;
 
-        req.user = decoded; // Lưu thông tin user vào request
+        console.log("req.user sau khi xác thực:", req.user);
+
         next();
     } catch (error) {
-        console.error("JWT Error:", error.message); // Log lỗi JWT để debug
-        return res.status(403).json({ error: "Invalid or Expired Token!" });
+        console.error("Token verification error:", error.message);
+
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(403).json({ error: "Invalid Token!" });
+        } else if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: "Token Expired!" });
+        } else {
+            return res.status(403).json({ error: "Invalid Token Payload!" });
+        }
     }
 };
+const verifyAdmin = async (req, res, next) => {
+    const userId = req.user && (req.user.userId || req.user.id);
 
-module.exports = verifyToken;
+    if (!req.user || !userId) {
+        return res.status(403).json({ error: "Access Denied! No User Information." });
+    }
+    try {
+        const user = await User.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User Not Found!" });
+        }
+        if (user.role !== "admin") {
+            return res.status(403).json({ error: "Access Denied! Admins only." });
+        }
+        next();
+    } catch (error) {
+        console.error("Admin Check Error:", error.message);
+        return res.status(500).json({ error: "Server Error!" });
+    }
+};
+module.exports = { verifyToken, verifyAdmin };

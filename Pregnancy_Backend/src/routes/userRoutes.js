@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { sql, poolPromise } = require('../config/db');
-const verifyToken = require("../middleware/authMiddleware");
+const { verifyToken } = require("../middleware/authMiddleware");
 const { registerUser, loginUser, getAllUsers, getUserInfo, updateUser, deleteUser } = require("../controllers/userController");
 
 router.post("/register", registerUser);

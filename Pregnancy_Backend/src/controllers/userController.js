@@ -11,7 +11,6 @@ const registerUser = async (req, res) => {
     try {
         console.log("Nhận request:", req.body);
 
-        // Kết nối DB
         const pool = await poolPromise;
 
         // Kiểm tra email đã tồn tại chưa
@@ -27,14 +26,14 @@ const registerUser = async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Thêm vào bảng Users
+        // Thêm vào Users
         const userResult = await pool
             .request()
             .input("email", sql.VarChar, email)
             .input("password", sql.VarChar, hashedPassword)
             .input("phone", sql.VarChar, phone)
             .input("role", sql.VarChar, role || "User")
-            .input("isVerified", sql.Bit, 0)
+            .input("isVerified", sql.Bit, 1)
             .input("createdAt", sql.DateTime, new Date())
             .query(`
                 INSERT INTO Users (email, password, phone, role, isVerified, createdAt) 
@@ -42,16 +41,16 @@ const registerUser = async (req, res) => {
                 VALUES (@email, @password, @phone, @role, @isVerified, @createdAt)
             `);
 
-        const newUserId = userResult.recordset[0].userId; // Lấy userId vừa tạo
+        const newUserId = userResult.recordset[0].userId;
 
-        // Thêm vào bảng Members
+        // Thêm vào Members
         await pool
             .request()
             .input("userId", sql.Int, newUserId)
             .input("firstName", sql.VarChar, firstName)
             .input("lastName", sql.VarChar, lastName)
             .input("gender", sql.VarChar, gender)
-            .input("subscriptionPlan", sql.Int, null) // Mặc định chưa có gói
+            .input("subscriptionPlan", sql.Int, null)
             .input("subscriptionExpiry", sql.DateTime, null)
             .input("isSubscribed", sql.Bit, 0)
             .input("createdAt", sql.DateTime, new Date())
@@ -69,14 +68,12 @@ const registerUser = async (req, res) => {
     }
 };
 
-
 // Đăng nhập
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         const pool = await poolPromise;
 
-        // Lấy thông tin từ bảng Users
         const userResult = await pool
             .request()
             .input("email", sql.VarChar, email)
@@ -85,11 +82,9 @@ const loginUser = async (req, res) => {
         const user = userResult.recordset[0];
         if (!user) return res.status(401).json({ error: "Invalid email or password" });
 
-        // Kiểm tra password
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(401).json({ error: "Invalid email or password" });
 
-        // Lấy thông tin từ bảng Members
         const memberResult = await pool
             .request()
             .input("userId", sql.Int, user.userId)
@@ -97,10 +92,8 @@ const loginUser = async (req, res) => {
 
         const member = memberResult.recordset[0] || { firstName: null, lastName: null };
 
-        // Tạo token
         const token = jwt.sign({ userId: user.userId, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-        // Trả về dữ liệu
         res.json({
             message: "Login successful",
             token,
@@ -142,6 +135,8 @@ const getUserById = async (req, res) => {
         res.status(500).json({ message: "Lỗi server khi lấy user" });
     }
 };
+
+// Lấy thông tin user từ token
 const getUserInfo = async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -159,11 +154,12 @@ const getUserInfo = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-//Update User
+
+// Update User
 const updateUser = async (req, res) => {
     try {
-        const { userId } = req.params; // Lấy userId từ URL
         const { email, phone, role, isVerified } = req.body;
+        const userId = req.user.userId; // Fix lỗi lấy userId từ token
 
         const pool = await poolPromise;
         await pool
@@ -188,7 +184,7 @@ const updateUser = async (req, res) => {
 // Delete User
 const deleteUser = async (req, res) => {
     try {
-        const { userId } = req.params; // Lấy userId từ URL
+        const userId = req.user.userId; // Fix lỗi lấy userId từ token
 
         const pool = await poolPromise;
         await pool
@@ -202,5 +198,5 @@ const deleteUser = async (req, res) => {
     }
 };
 
-
-module.exports = { registerUser, loginUser, getAllUsers, getUserInfo, updateUser, deleteUser };
+// Export các controller
+module.exports = { registerUser, loginUser, getAllUsers, getUserById, getUserInfo, updateUser, deleteUser };

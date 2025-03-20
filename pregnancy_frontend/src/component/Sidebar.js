@@ -1,12 +1,5 @@
-import React from "react";
-import {
-    Drawer,
-    List,
-    ListItemIcon,
-    ListItemText,
-    Typography,
-    ListItemButton // Thêm import này 
-} from "@mui/material";
+import React, { useContext } from "react";
+import { Drawer, List, ListItemIcon, ListItemText, Typography, ListItemButton } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import InfoIcon from "@mui/icons-material/Info";
@@ -19,22 +12,11 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import ForumIcon from "@mui/icons-material/Forum";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import { UserContext } from "../context/userContext"; // Import UserContext
 
 const Sidebar = () => {
     const navigate = useNavigate();
-
-    // Lấy userRole an toàn hơn
-    const userInfo = localStorage.getItem("userInfo");
-    let userRole = "";
-
-    try {
-        if (userInfo) {
-            const parsedInfo = JSON.parse(userInfo);
-            userRole = parsedInfo.role || "";
-        }
-    } catch (error) {
-        console.error("Error parsing user info:", error);
-    }
+    const { userRole, isAdmin } = useContext(UserContext); // Lấy userRole từ context
 
     return (
         <Drawer
@@ -46,10 +28,8 @@ const Sidebar = () => {
             }}
         >
             <List>
-                {/* Nhóm Tính Năng Chung */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Tính Năng Chung</Typography>
 
-                {/* Thay đổi tất cả ListItem button thành ListItemButton */}
                 <ListItemButton onClick={() => navigate("/dashboard")}>
                     <ListItemIcon sx={{ color: "#fff" }}><DashboardIcon /></ListItemIcon>
                     <ListItemText primary="Dashboard" />
@@ -65,7 +45,6 @@ const Sidebar = () => {
                     <ListItemText primary="Quản lý tài khoản" />
                 </ListItemButton>
 
-                {/* Nhóm Theo Dõi Thai Kỳ */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Theo Dõi Thai Kỳ</Typography>
 
                 <ListItemButton onClick={() => navigate("/update-growth")}>
@@ -83,7 +62,6 @@ const Sidebar = () => {
                     <ListItemText primary="Cảnh báo phát triển" />
                 </ListItemButton>
 
-                {/* Nhóm Nhắc Nhở & Lịch Hẹn */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Nhắc Nhở & Lịch Hẹn</Typography>
 
                 <ListItemButton onClick={() => navigate("/appointments")}>
@@ -96,7 +74,6 @@ const Sidebar = () => {
                     <ListItemText primary="Nhắc nhở quan trọng" />
                 </ListItemButton>
 
-                {/* Nhóm Cộng Đồng */}
                 <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Cộng Đồng</Typography>
 
                 <ListItemButton onClick={() => navigate("/forum")}>
@@ -104,8 +81,8 @@ const Sidebar = () => {
                     <ListItemText primary="Diễn đàn chia sẻ" />
                 </ListItemButton>
 
-                {/* Nhóm Admin (Chỉ Hiện Nếu Là Admin) */}
-                {userRole === "admin" && (
+                {/* Nếu là admin mới hiển thị menu này */}
+                {isAdmin() && (
                     <>
                         <Typography sx={{ padding: "10px 16px", fontWeight: "bold", color: "#ffcc00" }}>Quản Lý Hệ Thống (Admin)</Typography>
 

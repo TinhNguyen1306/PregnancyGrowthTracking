@@ -28,7 +28,7 @@ app.use("/api/users", require("./routes/userRoutes"));
 app.use("/auth", require("./routes/auth"));
 app.use("/api/subscription", require("./routes/subscriptionRoutes"));
 app.use("/api/fetalgrowth", require("./routes/fetalGrowthRoutes"));
-app.use("/api/fetal-growth", require("./routes/fetalGrowthRoutes"));
+app.use("/api/payments", require("./routes/paymentRoutes"));
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

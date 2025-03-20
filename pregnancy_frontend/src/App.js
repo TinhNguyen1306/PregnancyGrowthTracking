@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-d
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Checkout from "./pages/Checkout";
 import { UserProvider } from "./context/userContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -15,6 +16,7 @@ function App() {
           <Routes>
             {/* Khi vào "/", tự động chuyển hướng đến Dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/checkout/:planId" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
