@@ -97,8 +97,8 @@ const Checkout = () => {
 
     // Check if user is authenticated
     useEffect(() => {
+        console.log("User ID:", userId, "Loading:", loading);
         if (!userId && !loading) {
-            // If there's no userId and we've finished checking authentication status
             navigate("/login", {
                 state: {
                     returnUrl: `/checkout/${planId}`,

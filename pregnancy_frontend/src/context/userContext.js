@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const UserContext = createContext();
 
@@ -8,6 +9,7 @@ export const UserProvider = ({ children }) => {
     const [lastName, setLastName] = useState("");
     const [userRole, setUserRole] = useState(""); // Thêm state cho userRole
     const [userObject, setUserObject] = useState(null); // Nếu bạn đã thêm state này
+    const navigate = useNavigate();
 
     useEffect(() => {
         const savedUserInfo = localStorage.getItem("userInfo");
@@ -51,6 +53,7 @@ export const UserProvider = ({ children }) => {
         setLastName("");
         setUserRole(""); // Reset role khi logout
         setUserObject(null); // Nếu bạn đã thêm state này
+        navigate("/");
     };
 
     // Hàm tiện ích để kiểm tra quyền
