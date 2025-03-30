@@ -22,78 +22,11 @@ import { ArrowBack, CheckCircle, CreditCard, Payment } from "@mui/icons-material
 const Checkout = () => {
     const { planId } = useParams();
     const location = useLocation();
-    const [plan, setPlan] = useState(location.state?.plan);
-    const [loadingPlan, setLoadingPlan] = useState(!location.state?.plan);
+    const [plan] = useState(location.state?.plan);
+    const [loadingPlan] = useState(!location.state?.plan);
 
-    const { userId, userEmail, firstName, lastName, loading, updateSubscriptionInfo } = useContext(UserContext);
+    const { userId, loading, updateSubscriptionInfo } = useContext(UserContext);
     const navigate = useNavigate();
-
-    // Fetch plan details if not available from state
-    useEffect(() => {
-        const fetchPlanDetails = async () => {
-            if (plan) return; // If we already have the plan from state, skip
-
-            try {
-                const response = await fetch(`http://localhost:5001/api/subscription/${planId}`);
-
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        console.log("Plan not found or API not implemented yet");
-                        // Use a default plan object if API fails (404)
-                        const defaultPlans = {
-                            "4": {
-                                planId: 4,
-                                name: "Gói Bronze",
-                                price: 49,
-                                description: "Gói cơ bản với các tính năng theo dõi thai kỳ",
-                                duration: 30
-                            },
-                            "5": {
-                                planId: 5,
-                                name: "Gói Gold",
-                                price: 99,
-                                description: "Gói nâng cao với thêm nhiều tính năng đặc biệt",
-                                duration: 30
-                            },
-                            "6": {
-                                planId: 6,
-                                name: "Gói Diamond",
-                                price: 149,
-                                description: "Gói cao cấp nhất với đầy đủ tính năng và hỗ trợ 24/7",
-                                duration: 30
-                            }
-                        };
-
-                        if (defaultPlans[planId]) {
-                            setPlan(defaultPlans[planId]);
-                            setLoadingPlan(false);
-                            return;
-                        }
-
-                        // If we don't have a default plan for this ID, redirect to dashboard
-                        navigate("/dashboard");
-                        return;
-                    }
-
-                    // Handle other errors
-                    navigate("/dashboard");
-                    return;
-                }
-
-                const planData = await response.json();
-                setPlan(planData);
-            } catch (error) {
-                console.error("Error fetching plan details:", error);
-                navigate("/dashboard");
-            } finally {
-                setLoadingPlan(false);
-            }
-        };
-
-        if (!plan && planId) {
-            fetchPlanDetails();
-        }
-    }, [plan, planId, navigate]);
 
     // Check if user is authenticated
     useEffect(() => {

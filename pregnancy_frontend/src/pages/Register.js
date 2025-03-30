@@ -5,18 +5,28 @@ import {
     Container,
     Typography,
     Box,
-    MenuItem,
     FormControl,
     FormLabel,
     RadioGroup,
     FormControlLabel,
-    Radio
+    Radio,
+    Paper,
+    InputAdornment,
+    IconButton
 } from "@mui/material";
-
+import {
+    Person,
+    Email,
+    Phone,
+    Lock,
+    Cake,
+    Wc,
+    Visibility,
+    VisibilityOff
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from "sweetalert2";
-
-
 import authService from "../service/authService";
 
 function Register({ closeModal }) {
@@ -28,15 +38,13 @@ function Register({ closeModal }) {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [phone, setPhone] = useState("");
-    const [role] = useState("User"); // Mặc định User
-
+    const [role] = useState("User");
+    const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
-
     const navigate = useNavigate();
 
     const validateInput = () => {
         let newErrors = {};
-
         if (!firstName.trim()) newErrors.firstName = "First Name is required";
         if (!lastName.trim()) newErrors.lastName = "Last Name is required";
         if (!dob) newErrors.dob = "Date of Birth is required";
@@ -52,7 +60,6 @@ function Register({ closeModal }) {
         if (!phone.match(/^[0-9]{10,11}$/)) {
             newErrors.phone = "Phone number must be 10-11 digits";
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -76,7 +83,6 @@ function Register({ closeModal }) {
             const response = await authService.register(userData);
             console.log("Response từ API:", response);
 
-            // Hiện popup thông báo đăng ký thành công
             Swal.fire({
                 title: "Đăng ký thành công!",
                 text: "Bạn đã đăng ký tài khoản thành công. Hãy đăng nhập để tiếp tục!",
@@ -84,7 +90,7 @@ function Register({ closeModal }) {
                 confirmButtonText: "OK",
                 confirmButtonColor: "#FF4081"
             }).then(() => {
-                navigate("/login"); // Chuyển sang trang đăng nhập sau khi nhấn OK
+                navigate("/login");
             });
 
         } catch (error) {
@@ -92,140 +98,235 @@ function Register({ closeModal }) {
             setErrors({ global: error.message || "Registration failed" });
         }
     };
+
     return (
-        <Container maxWidth="sm">
-            <Box
+
+        <Box
+            sx={{
+                minHeight: '100vh',
+                background: "linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%)",
+                py: 4
+            }}
+        >
+            <IconButton
+                onClick={() => navigate(-1)}
                 sx={{
-                    padding: "20px",
-                    background: "white",
-                    borderRadius: "10px",
-                    boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.2)",
+                    position: 'absolute',
+                    left: 20,
+                    top: 20,
+                    backgroundColor: 'white',
+                    '&:hover': {
+                        backgroundColor: '#f5f5f5'
+                    }
                 }}
             >
-                <form onSubmit={handleSubmit}>
-                    <TextField
-                        label="First Name"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        error={!!errors.firstName}
-                        helperText={errors.firstName}
-                    />
-                    <TextField
-                        label="Last Name"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        error={!!errors.lastName}
-                        helperText={errors.lastName}
-                    />
-                    <FormControl component="fieldset" margin="normal">
-                        <FormLabel component="legend">Gender</FormLabel>
-                        <RadioGroup
-                            row
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value)}
-                        >
-                            <FormControlLabel value="Male" control={<Radio />} label="Male" />
-                            <FormControlLabel value="Female" control={<Radio />} label="Female" />
-                        </RadioGroup>
-                    </FormControl>
-                    <TextField
-                        label="Date of Birth"
-                        type="date"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={dob}
-                        onChange={(e) => setDob(e.target.value)}
-                        InputLabelProps={{ shrink: true }}
-                        error={!!errors.dob}
-                        helperText={errors.dob}
-                    />
-                    <TextField
-                        label="Email"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        error={!!errors.email}
-                        helperText={errors.email}
-                    />
-                    <TextField
-                        label="Password"
-                        type="password"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        error={!!errors.password}
-                        helperText={errors.password}
-                    />
-                    <TextField
-                        label="Confirm Password"
-                        type="password"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        error={!!errors.confirmPassword}
-                        helperText={errors.confirmPassword}
-                    />
-                    <TextField
-                        label="Phone"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        error={!!errors.phone}
-                        helperText={errors.phone}
-                    />
-                    <TextField
-                        select
-                        label="Role"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={role}
-                        disabled
-                    >
-                        <MenuItem value="User">User</MenuItem>
-                    </TextField>
-
-                    {errors.global && (
-                        <Typography color="error" align="center" sx={{ marginTop: 1 }}>
-                            {errors.global}
-                        </Typography>
-                    )}
-
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        type="submit"
+                <ArrowBackIcon />
+            </IconButton>
+            <Container maxWidth="md">
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: 4,
+                        borderRadius: 2,
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(10px)'
+                    }}
+                >
+                    <Typography
+                        variant="h4"
+                        align="center"
                         sx={{
-                            backgroundColor: "#FF4081",
-                            color: "white",
-                            padding: "10px",
-                            fontSize: "1rem",
-                            marginTop: "10px",
-                            "&:hover": {
-                                backgroundColor: "#D81B60",
-                            },
+                            mb: 4,
+                            color: '#FF4081',
+                            fontWeight: 'bold'
                         }}
                     >
-                        Register
-                    </Button>
-                </form>
-            </Box>
-        </Container>
+                        Đăng Ký Tài Khoản
+                    </Typography>
+
+                    <form onSubmit={handleSubmit}>
+                        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                            <TextField
+                                fullWidth
+                                label="Họ"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                error={!!errors.firstName}
+                                helperText={errors.firstName}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Person color="primary" />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                            <TextField
+                                fullWidth
+                                label="Tên"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                error={!!errors.lastName}
+                                helperText={errors.lastName}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Person color="primary" />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </Box>
+                        <TextField
+                            fullWidth
+                            type="date"
+                            label="Ngày sinh"
+                            value={dob}
+                            onChange={(e) => setDob(e.target.value)}
+                            error={!!errors.dob}
+                            helperText={errors.dob}
+                            sx={{ mb: 2 }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Cake color="primary" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                        />
+
+                        <FormControl component="fieldset" sx={{ mb: 2 }}>
+                            <FormLabel component="legend">Giới tính</FormLabel>
+                            <RadioGroup
+                                row
+                                value={gender}
+                                onChange={(e) => setGender(e.target.value)}
+                            >
+                                <FormControlLabel
+                                    value="female"
+                                    control={<Radio />}
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Wc color="primary" sx={{ mr: 1 }} />
+                                            Nữ
+                                        </Box>
+                                    }
+                                />
+                                <FormControlLabel
+                                    value="male"
+                                    control={<Radio />}
+                                    label={
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Wc color="primary" sx={{ mr: 1 }} />
+                                            Nam
+                                        </Box>
+                                    }
+                                />
+                            </RadioGroup>
+                        </FormControl>
+
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            error={!!errors.email}
+                            helperText={errors.email}
+                            sx={{ mb: 2 }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Email color="primary" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+
+                        <TextField
+                            fullWidth
+                            type={showPassword ? "text" : "password"}
+                            label="Mật khẩu"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            error={!!errors.password}
+                            helperText={errors.password}
+                            sx={{ mb: 2 }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Lock color="primary" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <Button onClick={() => setShowPassword(!showPassword)}>
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </Button>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+
+                        <TextField
+                            fullWidth
+                            type={showPassword ? "text" : "password"}
+                            label="Xác nhận mật khẩu"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            error={!!errors.confirmPassword}
+                            helperText={errors.confirmPassword}
+                            sx={{ mb: 2 }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Lock color="primary" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+
+                        <TextField
+                            fullWidth
+                            label="Số điện thoại"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            error={!!errors.phone}
+                            helperText={errors.phone}
+                            sx={{ mb: 2 }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Phone color="primary" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{
+                                mt: 2,
+                                bgcolor: '#FF4081',
+                                '&:hover': {
+                                    bgcolor: '#F50057',
+                                },
+                                height: '48px',
+                                fontSize: '1.1rem',
+                            }}
+                        >
+                            Đăng Ký
+                        </Button>
+                    </form>
+                </Paper>
+            </Container>
+        </Box>
+
     );
 }
 

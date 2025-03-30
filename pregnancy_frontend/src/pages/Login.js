@@ -14,6 +14,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import Register from "./Register";
 import authService from "../service/authService";
 import logo from "../assets/Pregnancy.png";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { UserContext } from "../context/userContext";
 import { GoogleLogin } from "@react-oauth/google";
 import Swal from "sweetalert2";
@@ -75,7 +76,7 @@ function Login() {
                 title: "Thành công!",
                 text: "Bạn đã đăng nhập thành công!",
                 icon: "success",
-                timer: 1500,
+                timer: 1000,
                 showConfirmButton: false,
             }).then(() => {
                 navigate("/dashboard");
@@ -103,7 +104,7 @@ function Login() {
                 title: "Thành công!",
                 text: "Bạn đã đăng nhập bằng Google!",
                 icon: "success",
-                timer: 1500,
+                timer: 10000,
                 showConfirmButton: false
             });
 
@@ -129,6 +130,20 @@ function Login() {
                 fontFamily: "'Poppins', sans-serif",
             }}
         >
+            <IconButton
+                onClick={() => navigate(-1)}
+                sx={{
+                    position: 'absolute',
+                    left: 20,
+                    top: 20,
+                    backgroundColor: 'white',
+                    '&:hover': {
+                        backgroundColor: '#f5f5f5'
+                    }
+                }}
+            >
+                <ArrowBackIcon />
+            </IconButton>
             <Typography variant="h4" fontWeight="bold" color="#444">
                 Welcome to <span style={{ color: "#FF4081" }}>Pregnancy Tracker</span>
             </Typography>
