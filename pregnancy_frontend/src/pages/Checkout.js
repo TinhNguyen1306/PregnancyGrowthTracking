@@ -31,7 +31,10 @@ const Checkout = () => {
     // Check if user is authenticated
     useEffect(() => {
         console.log("User ID:", userId, "Loading:", loading);
-        if (!userId && !loading) {
+
+        if (loading) return; // 🔥 Đợi loading xong rồi mới xử lý
+
+        if (!userId) {
             navigate("/login", {
                 state: {
                     returnUrl: `/checkout/${planId}`,
@@ -385,6 +388,8 @@ const Checkout = () => {
                                                     placeholder="123"
                                                     value={cvv}
                                                     onChange={(e) => setCvv(e.target.value)}
+                                                    error={cvv.length < 3} // Báo lỗi khi CVV dưới 3 ký tự
+                                                    helperText={cvv.length < 3 ? "Mã CVV phải có ít nhất 3 số" : ""}
                                                     required
                                                 />
                                             </Grid>
@@ -421,7 +426,7 @@ const Checkout = () => {
                                             <Typography>Đang xử lý...</Typography>
                                         </Box>
                                     ) : (
-                                        `Thanh toán $${plan.price}`
+                                        `Thanh toán $${plan?.price || 0}`
                                     )}
                                 </Button>
                             </form>

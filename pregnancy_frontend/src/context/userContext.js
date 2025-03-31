@@ -11,27 +11,11 @@ export const UserProvider = ({ children }) => {
     const [userRole, setUserRole] = useState("");
     const [userObject, setUserObject] = useState(null);
     const [membership, setMembership] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [userToken, setUserToken] = useState(localStorage.getItem("userToken") || "");
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const savedUserInfo = localStorage.getItem("userInfo");
-
-        if (savedUserInfo) {
-            try {
-                const user = JSON.parse(savedUserInfo);
-                setUserId(user.id || null);
-                setUserEmail(user.email || "");
-                setFirstName(user.firstName || "");
-                setLastName(user.lastName || "");
-                setUserRole(user.role || "");
-                setUserObject(user);
-                fetchMembershipStatus();
-            } catch (error) {
-                console.error("Error parsing userInfo:", error);
-            }
-        }
-    }, []);
-
+    // ✅ Định nghĩa hàm fetchMembershipStatus trước khi dùng
     const fetchMembershipStatus = async () => {
         const token = localStorage.getItem("userToken");
         if (!token) return;
@@ -40,9 +24,10 @@ export const UserProvider = ({ children }) => {
             const response = await fetch("http://localhost:5001/api/members/status", {
                 method: "GET",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
+                    "Authorization": `Bearer ${token}`,  // 🔥 Sửa lỗi backtick
                 },
             });
+
             if (!response.ok) {
                 throw new Error("Không thể lấy trạng thái hội viên");
             }
@@ -61,22 +46,68 @@ export const UserProvider = ({ children }) => {
         }
     };
 
+    useEffect(() => {
+        const savedUserInfo = localStorage.getItem("userInfo");
+        const savedToken = localStorage.getItem("userToken");
+
+        console.log("UserContext Mounted");
+        console.log("Saved User Info:", savedUserInfo);
+        console.log("Saved Token:", savedToken);
+
+        if (savedUserInfo) {
+            try {
+                const user = JSON.parse(savedUserInfo);
+                setUserId(user.id || null);
+                setUserEmail(user.email || "");
+                setFirstName(user.firstName || "");
+                setLastName(user.lastName || "");
+                setUserRole(user.role || "");
+                setUserObject(user);
+                fetchMembershipStatus();
+            } catch (error) {
+                console.error("Error parsing userInfo:", error);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (userId) {
+            fetchMembershipStatus();
+        }
+    }, [userId]);
+
     const login = (user) => {
-        if (!user) return;
+        if (!user || !user.userId) {
+            console.error("Login failed: invalid user data", user);
+            return;
+        }
 
         try {
+            setLoading(true);
+
+            // Lưu vào localStorage
             localStorage.setItem("userInfo", JSON.stringify(user));
-            setUserId(user.id || null)
+
+            // Cập nhật state
+            setUserId(user.userId);
             setUserEmail(user.email || "");
             setFirstName(user.firstName || "");
             setLastName(user.lastName || "");
-            setUserRole(user.role || ""); // Cập nhật role khi login
-            setUserObject(user); // Nếu bạn đã thêm state này
+            setUserRole(user.role || "");
+            setUserObject(user);
+
+            console.log("Login thành công, User ID:", user.userId);
+
+            fetchMembershipStatus(); // 🔥 Đảm bảo gọi API sau khi login
+
+            setTimeout(() => {
+                setLoading(false);
+            }, 100);
         } catch (error) {
             console.error("Error in login function:", error);
+            setLoading(false);
         }
     };
-
 
     const logout = () => {
         localStorage.removeItem("userToken");
@@ -105,6 +136,9 @@ export const UserProvider = ({ children }) => {
             userRole,
             user: userObject,
             membership,
+            loading,
+            userToken,  // 🟢 Thêm userToken vào context
+            setUserToken,
             login,
             logout,
             isAdmin,

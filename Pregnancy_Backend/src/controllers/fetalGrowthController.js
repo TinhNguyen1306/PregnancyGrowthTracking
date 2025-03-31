@@ -44,5 +44,87 @@ const getFetalGrowthByMother = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
+// Thêm một sự phát triển của thai nhi
+const addFetalGrowth = async (req, res) => {
+    try {
+        const { week, weight, length, note } = req.body;
+        const motherId = req.user?.userId; // Lấy từ token, chính là userId bên bảng Users
 
-module.exports = { getAllFetalGrowth, getFetalGrowthByMother };
+        console.log("🔹 Mother ID từ token:", motherId);
+        console.log("🔹 Body request nhận được:", req.body);
+
+        if (!motherId) {
+            return res.status(400).json({ message: "Không tìm thấy motherId từ token" });
+        }
+
+        if (!week || !weight || !length) {
+            return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc (week, weight, length)" });
+        }
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input("motherId", sql.Int, motherId)
+            .input("week", sql.Int, week)
+            .input("weight", sql.Float, weight)
+            .input("length", sql.Float, length)
+            .input("note", sql.NVarChar, note || null)
+            .query(`
+                INSERT INTO FetalGrowth (motherId, gestationalAge, weight, length, notes, recordedAt)
+                VALUES (@motherId, @week, @weight, @length, @note, GETDATE());
+            `);
+
+        console.log("✅ Kết quả INSERT:", result);
+
+        res.status(201).json({ message: "Thêm dữ liệu phát triển thai nhi thành công" });
+    } catch (error) {
+        console.error("🚨 DB Error:", error);
+        res.status(500).json({ message: "Lỗi server", error: error.message });
+    }
+};
+
+const updateFetalGrowth = async (req, res) => {
+    try {
+        const { id } = req.params; // ID của bản ghi cần cập nhật
+        const { week, weight, length, note } = req.body;
+        const motherId = req.user?.userId; // Lấy từ token
+
+        console.log("🔹 Mother ID từ token:", motherId);
+        console.log("🔹 Cập nhật ID:", id);
+        console.log("🔹 Body request nhận được:", req.body);
+
+        if (!motherId) {
+            return res.status(400).json({ message: "Không tìm thấy motherId từ token" });
+        }
+
+        if (!id) {
+            return res.status(400).json({ message: "Thiếu ID bản ghi để cập nhật" });
+        }
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input("id", sql.Int, id)
+            .input("motherId", sql.Int, motherId)
+            .input("week", sql.Int, week)
+            .input("weight", sql.Float, weight)
+            .input("length", sql.Float, length)
+            .input("note", sql.NVarChar, note || null)
+            .query(`
+                UPDATE FetalGrowth
+                SET gestationalAge = @week, weight = @weight, length = @length, notes = @note
+                WHERE growthId = @id AND motherId = @motherId;
+            `);
+
+        console.log("✅ Kết quả UPDATE:", result);
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ message: "Không tìm thấy bản ghi hoặc không có quyền cập nhật" });
+        }
+
+        res.status(200).json({ message: "Cập nhật thành công" });
+    } catch (error) {
+        console.error("🚨 DB Error:", error);
+        res.status(500).json({ message: "Lỗi server", error: error.message });
+    }
+};
+
+module.exports = { getAllFetalGrowth, getFetalGrowthByMother, addFetalGrowth, updateFetalGrowth };
