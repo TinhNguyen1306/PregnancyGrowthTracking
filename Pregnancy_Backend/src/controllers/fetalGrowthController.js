@@ -153,5 +153,44 @@ const getExistingWeeks = async (req, res) => {
         res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
+// Lấy dữ liệu tăng trưởng thai nhi theo tuần
+const getFetalGrowthByWeek = async (req, res) => {
+    try {
+        const { week } = req.params; // Nhận tham số tuần từ URL
 
-module.exports = { getAllFetalGrowth, getFetalGrowthByMother, addFetalGrowth, updateFetalGrowth, getExistingWeeks };
+        // Kiểm tra xem tuần có hợp lệ hay không
+        if (!week || isNaN(week) || week < 8 || week > 40) {
+            return res.status(400).json({ message: "Tuần không hợp lệ, vui lòng nhập từ 8 đến 40" });
+        }
+
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            return res.status(400).json({ message: "User không tìm thấy trong token" });
+        }
+
+        // Truy vấn dữ liệu tăng trưởng của thai nhi theo tuần từ cơ sở dữ liệu
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input("userId", sql.Int, userId)
+            .input("week", sql.Int, week)
+            .query(`
+                SELECT weight, length, recordedAt
+                FROM FetalGrowth
+                WHERE motherId = @userId AND gestationalAge = @week
+                ORDER BY recordedAt DESC
+            `);
+
+        // Kiểm tra nếu không có dữ liệu
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: `Không có dữ liệu cho tuần ${week}` });
+        }
+
+        res.status(200).json(result.recordset); // Trả về dữ liệu
+    } catch (error) {
+        console.error("DB Error:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
+
+module.exports = { getAllFetalGrowth, getFetalGrowthByMother, addFetalGrowth, updateFetalGrowth, getExistingWeeks, getFetalGrowthByWeek };

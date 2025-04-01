@@ -112,9 +112,10 @@ const FetalGrowthChart = () => {
             }
         });
 
-        console.log("Issues:", issues);
-        setAlertMessage(issues.length > 0 ? issues.join(" ") : "");
+        // Sử dụng '\n' để xuống dòng giữa các thông báo
+        setAlertMessage(issues.length > 0 ? issues.join("\n") : "");
     }, [growthData]);
+
 
     if (loading) {
         return <CircularProgress />;

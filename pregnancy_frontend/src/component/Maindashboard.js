@@ -7,13 +7,16 @@ import plan2Img from "../assets/Golds.png";
 import plan3Img from "../assets/Diamonds.png";
 import FetalGrowthChart from "../component/FetalGrowthchart";
 import AddFetalGrowth from "../component/Addfetalgrowth";
+import UpdateFetalGrowth from "../component/Updatefetalgrowth"; // Import UpdateFetalGrowth
 
 const Maindashboard = () => {
     const { firstName, lastName, userEmail, userToken } = useContext(UserContext);
     const [plans, setPlans] = useState([]);
     const [userSubscription, setUserSubscription] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [open, setOpen] = useState(false);
+    const [openAdd, setOpenAdd] = useState(false); // Modal for Add
+    const [openUpdate, setOpenUpdate] = useState(false); // Modal for Update
+    const [fetalGrowthData, setFetalGrowthData] = useState(null); // Dữ liệu cần cập nhật
     const [refresh, setRefresh] = useState(false);
     const [chartKey, setChartKey] = useState(0);
     const currentSubscription = userSubscription?.[0];
@@ -93,9 +96,11 @@ const Maindashboard = () => {
     const handleSubscribe = (plan) => {
         navigate(`/checkout/${plan.planId}`, { state: { plan } });
     };
+
     useEffect(() => {
         fetchSubscriptionPlans(); // Gọi API lấy danh sách gói đăng ký
     }, []);
+
     const fullName = firstName && lastName ? `${firstName} ${lastName}`.trim() : "User";
 
     const planImages = {
@@ -103,7 +108,15 @@ const Maindashboard = () => {
         5: plan2Img,
         6: plan3Img
     };
-    console.log("Re-render UI! userSubscription:", userSubscription);
+
+    const openUpdateModal = (data) => {
+        setFetalGrowthData(data);  // Truyền dữ liệu cần sửa vào modal
+        setOpenUpdate(true); // Mở modal cập nhật
+    };
+
+    const handleNavigate = () => {
+        navigate("/showsubscribed"); // Điều hướng đến /showsubscribed
+    };
 
     return (
         <Box sx={{ padding: 3 }}>
@@ -147,29 +160,56 @@ const Maindashboard = () => {
                 </Typography>
             )}
 
+            <Button variant="contained" sx={{
+                background: "linear-gradient(135deg, #FFDEE9 30%, #B5FFFC 100%)",
+                color: "black",
+                '&:hover': { background: "#C2185B" }
+            }} onClick={handleNavigate}>
+                Xem các gói bạn đã đang kí
+            </Button>
+
             {/* Biểu đồ tăng trưởng thai nhi */}
             <Box sx={{ marginTop: 3 }}>
-                <Typography variant="h5" sx={{ marginBottom: 2 }}>Biểu đồ tăng trưởng thai nhi</Typography>
+                <Typography variant="h5" sx={{ marginBottom: 2 }}>
+                    Biểu đồ tăng trưởng thai nhi
+                </Typography>
                 <FetalGrowthChart key={chartKey} />
             </Box>
 
             <Box sx={{ marginTop: 3, textAlign: "center" }}>
-                <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
-                    Nhập chỉ số thai nhi
+                <Button variant="contained" color="primary" onClick={() => setOpenAdd(true)}>
+                    Thêm chỉ số thai nhi
+                </Button>
+            </Box>
+
+            {/* Button cập nhật chỉ số thai nhi */}
+            <Box sx={{ marginTop: 2, textAlign: "center" }}>
+                <Button variant="contained" color="secondary" onClick={() => setOpenUpdate(true)}>
+                    Cập nhật chỉ số thai nhi
                 </Button>
             </Box>
 
             {/* Popup nhập chỉ số thai nhi */}
-            <Modal open={open} onClose={() => setOpen(false)}>
+            <Modal open={openAdd} onClose={() => setOpenAdd(false)}>
                 <Paper sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, padding: 3 }}>
-                    <Typography variant="h6" sx={{ marginBottom: 2 }}>Nhập chỉ số thai nhi</Typography>
-                    <AddFetalGrowth onClose={() => setOpen(false)} onSuccess={refreshData} />
+                    <Typography variant="h6" sx={{ marginBottom: 2 }}>Thêm chỉ số thai nhi</Typography>
+                    <AddFetalGrowth onClose={() => setOpenAdd(false)} onSuccess={refreshData} />
+                </Paper>
+            </Modal>
+
+            {/* Popup cập nhật chỉ số thai nhi */}
+            <Modal open={openUpdate} onClose={() => setOpenUpdate(false)}>
+                <Paper sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, padding: 3 }}>
+                    <Typography variant="h6" sx={{ marginBottom: 2 }}>Cập nhật chỉ số thai nhi</Typography>
+                    <UpdateFetalGrowth onClose={() => setOpenUpdate(false)} onSuccess={refreshData} />
                 </Paper>
             </Modal>
 
             {/* Gói đăng ký */}
             <Box sx={{ marginTop: 4 }}>
-                <Typography variant="h5" sx={{ marginBottom: 2 }}>Gói đăng ký của chúng tôi</Typography>
+                <Typography variant="h5" sx={{ marginBottom: 2 }}>
+                    Gói đăng ký của chúng tôi
+                </Typography>
 
                 {loading ? (
                     <Box sx={{ display: "flex", width: "100%", justifyContent: "center", p: 3 }}>

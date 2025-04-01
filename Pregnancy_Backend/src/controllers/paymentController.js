@@ -256,5 +256,41 @@ const confirmPayment = async (req, res) => {
         });
     }
 };
+const getPaymentsByUser = async (req, res) => {
+    const pool = await poolPromise;
+    const userId = req.user.userId; // Lấy userId từ token
 
-module.exports = { createPayment, confirmPayment };
+    try {
+        const result = await pool.request()
+            .input('userId', sql.Int, userId)
+            .query(`
+                SELECT 
+                    p.paymentId, 
+                    sp.name AS planName,
+                    sp.price AS planPrice,
+                    p.amount AS paymentAmount,
+                    p.paymentMethod,
+                    p.transactionId,
+                    p.paymentStatus,
+                    p.paymentDate
+                FROM Payments p
+                JOIN Members m ON p.memberId = m.memberId
+                JOIN SubscriptionPlans sp ON p.planId = sp.planId
+                WHERE m.userId = @userId
+                ORDER BY p.paymentDate DESC;
+            `);
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: "Không có dữ liệu thanh toán cho người dùng này." });
+        }
+
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Lỗi server khi lấy thông tin thanh toán." });
+    }
+};
+
+
+
+module.exports = { createPayment, confirmPayment, getPaymentsByUser };

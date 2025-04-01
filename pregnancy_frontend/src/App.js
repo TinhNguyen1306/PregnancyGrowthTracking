@@ -1,10 +1,11 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Checkout from "./pages/Checkout";
 import Home from "./pages/Home";
+import Showsubscribed from "./pages/Showsubscribed";
 import { UserProvider } from "./context/userContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -15,12 +16,12 @@ function App() {
       <Router>
         <UserProvider>
           <Routes>
-            {/* Khi vào "/", tự động chuyển hướng đến Dashboard */}
             <Route path="/" element={<Home />} />
             <Route path="/checkout/:planId" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/showsubscribed" element={<Showsubscribed />} />
           </Routes>
         </UserProvider>
       </Router>
