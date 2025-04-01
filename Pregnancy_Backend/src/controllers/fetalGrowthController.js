@@ -73,11 +73,11 @@ const addFetalGrowth = async (req, res) => {
                 VALUES (@motherId, @week, @weight, @length, @note, GETDATE());
             `);
 
-        console.log("✅ Kết quả INSERT:", result);
+        console.log("Kết quả INSERT:", result);
 
         res.status(201).json({ message: "Thêm dữ liệu phát triển thai nhi thành công" });
     } catch (error) {
-        console.error("🚨 DB Error:", error);
+        console.error("DB Error:", error);
         res.status(500).json({ message: "Lỗi server", error: error.message });
     }
 };
@@ -114,7 +114,7 @@ const updateFetalGrowth = async (req, res) => {
                 WHERE growthId = @id AND motherId = @motherId;
             `);
 
-        console.log("✅ Kết quả UPDATE:", result);
+        console.log("Kết quả UPDATE:", result);
 
         if (result.rowsAffected[0] === 0) {
             return res.status(404).json({ message: "Không tìm thấy bản ghi hoặc không có quyền cập nhật" });
@@ -122,9 +122,36 @@ const updateFetalGrowth = async (req, res) => {
 
         res.status(200).json({ message: "Cập nhật thành công" });
     } catch (error) {
-        console.error("🚨 DB Error:", error);
+        console.error("DB Error:", error);
         res.status(500).json({ message: "Lỗi server", error: error.message });
     }
 };
+const getExistingWeeks = async (req, res) => {
+    try {
+        const userId = req.user?.userId;
 
-module.exports = { getAllFetalGrowth, getFetalGrowthByMother, addFetalGrowth, updateFetalGrowth };
+        if (!userId) {
+            return res.status(400).json({ message: "User not found in token" });
+        }
+
+        // Truy vấn các tuần thai đã có của người dùng, chỉ lấy các tuần duy nhất và trong khoảng từ tuần 8 đến tuần 40
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input("userId", sql.Int, userId)
+            .query(`
+                SELECT DISTINCT gestationalAge
+                FROM FetalGrowth
+                WHERE motherId = @userId
+                AND gestationalAge BETWEEN 8 AND 40
+            `);
+
+        const existingWeeks = result.recordset.map(row => row.gestationalAge);
+
+        res.status(200).json({ existingWeeks });
+    } catch (error) {
+        console.error("Error getting existing weeks:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+
+module.exports = { getAllFetalGrowth, getFetalGrowthByMother, addFetalGrowth, updateFetalGrowth, getExistingWeeks };

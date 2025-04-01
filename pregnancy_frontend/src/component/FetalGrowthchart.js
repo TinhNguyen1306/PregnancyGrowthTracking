@@ -77,13 +77,15 @@ const FetalGrowthChart = () => {
 
     // Gộp dữ liệu từ API với dữ liệu tham chiếu
     const mergedData = referenceData.map(ref => {
-        const actual = growthData.find(g => g.gestationalAge === ref.week);
+        const actual = growthData.find(g => Number(g.gestationalAge) === Number(ref.week));
         return {
-            gestationalAge: ref.week,
-            weight: actual ? actual.weight : "?",
-            length: actual ? actual.length : "?"
+            gestationalAge: ref.week,  // Dùng ref.week thay vì actual.gestationalAge
+            weight: actual ? actual.weight : null,
+            length: actual ? actual.length : null
         };
     });
+
+    console.log("Merged Data:", mergedData); // Log ra để kiểm tra
 
     useEffect(() => {
         let issues = [];
@@ -97,7 +99,7 @@ const FetalGrowthChart = () => {
                 let lengthIssue = Math.abs(entry.length - reference.length) > 5;
 
                 if (weightIssue && lengthIssue) {
-                    issueMessage += "Cân nặng và chiều dài của thai nhinhi đều phát triển không tốt.";
+                    issueMessage += "Cân nặng và chiều dài của thai nhi đều phát triển không tốt.";
                 } else if (weightIssue) {
                     issueMessage += "Cân nặng của thai nhi phát triển không tốt.";
                 } else if (lengthIssue) {
@@ -155,7 +157,23 @@ const FetalGrowthChart = () => {
 
                                 }}
                             />
-                            <Tooltip />
+                            <Tooltip
+                                formatter={(value, name) => [`${value} ${name.includes("Cân nặng") ? "g" : "cm"}`, name]}
+                                labelFormatter={(label, payload) => {
+                                    if (payload && payload.length > 0) {
+                                        // Kiểm tra nếu có gestationalAge hoặc week
+                                        const gestationalAge = payload[0]?.payload?.gestationalAge;
+                                        const week = payload[0]?.payload?.week;
+
+                                        // Nếu có gestationalAge, dùng nó, nếu không có thì dùng week
+                                        const weekToDisplay = gestationalAge !== undefined ? gestationalAge : week;
+
+                                        return `Tuần ${weekToDisplay !== undefined ? weekToDisplay : "Không xác định"}`;
+                                    }
+                                    return `Tuần ${label || "Không xác định"}`;
+                                }}
+                            />
+
                             <Legend layout="horizontal" align="center" verticalAlign="bottom" />
                             <Line type="monotone" dataKey="weight" stroke="#8884d8" strokeWidth={2} name="Cân nặng thực tế" />
                             <Line type="monotone" data={referenceData} dataKey="weight" stroke="#FF0000" strokeWidth={2} dot={false} name="Cân nặng chuẩn" />
@@ -186,7 +204,22 @@ const FetalGrowthChart = () => {
                                 }}
                                 domain={[0, 70]}
                             />
-                            <Tooltip />
+                            <Tooltip
+                                formatter={(value, name) => [`${value} ${name.includes("Cân nặng") ? "g" : "cm"}`, name]}
+                                labelFormatter={(label, payload) => {
+                                    if (payload && payload.length > 0) {
+                                        // Kiểm tra nếu có gestationalAge hoặc week
+                                        const gestationalAge = payload[0]?.payload?.gestationalAge;
+                                        const week = payload[0]?.payload?.week;
+
+                                        // Nếu có gestationalAge, dùng nó, nếu không có thì dùng week
+                                        const weekToDisplay = gestationalAge !== undefined ? gestationalAge : week;
+
+                                        return `Tuần ${weekToDisplay !== undefined ? weekToDisplay : "Không xác định"}`;
+                                    }
+                                    return `Tuần ${label || "Không xác định"}`;
+                                }}
+                            />
                             <Legend wrapperStyle={{ marginTop: 10 }} />
                             <Line type="monotone" dataKey="length" stroke="#82ca9d" strokeWidth={2} name="Chiều dài thực tế" />
                             <Line type="monotone" data={referenceData} dataKey="length" stroke="#FF0000" strokeWidth={2} dot={false} name="Chiều dài chuẩn" />

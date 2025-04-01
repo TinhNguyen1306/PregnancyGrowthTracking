@@ -15,7 +15,7 @@ export const UserProvider = ({ children }) => {
     const [userToken, setUserToken] = useState(localStorage.getItem("userToken") || "");
     const navigate = useNavigate();
 
-    // ✅ Định nghĩa hàm fetchMembershipStatus trước khi dùng
+    // Định nghĩa hàm fetchMembershipStatus trước khi dùng
     const fetchMembershipStatus = async () => {
         const token = localStorage.getItem("userToken");
         if (!token) return;
@@ -137,7 +137,7 @@ export const UserProvider = ({ children }) => {
             user: userObject,
             membership,
             loading,
-            userToken,  // 🟢 Thêm userToken vào context
+            userToken,  // Thêm userToken vào context
             setUserToken,
             login,
             logout,

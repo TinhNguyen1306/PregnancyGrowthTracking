@@ -1,24 +1,27 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Box, Paper, Typography, Grid, CircularProgress, Button } from "@mui/material";
+import React, { useContext, useEffect, useState, useCallback } from "react";
+import { Box, Paper, Typography, Grid, CircularProgress, Button, Modal } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/userContext";
 import plan1Img from "../assets/Bronzes.png";
 import plan2Img from "../assets/Golds.png";
 import plan3Img from "../assets/Diamonds.png";
 import FetalGrowthChart from "../component/FetalGrowthchart";
+import AddFetalGrowth from "../component/Addfetalgrowth";
 
 const Maindashboard = () => {
     const { firstName, lastName, userEmail, userToken } = useContext(UserContext);
     const [plans, setPlans] = useState([]);
     const [userSubscription, setUserSubscription] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [refresh, setRefresh] = useState(false);
+    const [chartKey, setChartKey] = useState(0);
     const currentSubscription = userSubscription?.[0];
     const navigate = useNavigate();
 
     const fetchSubscriptionPlans = async () => {
         try {
-            console.log("📡 Fetching subscription plans...");
+            console.log(" Fetching subscription plans...");
             const response = await fetch("http://localhost:5001/api/subscription/all");
 
             if (!response.ok) {
@@ -26,89 +29,73 @@ const Maindashboard = () => {
             }
 
             const data = await response.json();
-            console.log("✅ Subscription Plans:", data);
+            console.log("Subscription Plans:", data);
             setPlans(data);
         } catch (error) {
-            console.error("🚨 Error fetching subscription plans:", error);
-            setError("Không thể tải thông tin gói đăng ký. Vui lòng thử lại sau.");
+            console.error("Error fetching subscription plans:", error);
+            console.error("Không thể tải thông tin gói đăng ký. Vui lòng thử lại sau.");
         }
     };
 
-    useEffect(() => {
-        const fetchUserSubscription = async (token) => {
-            try {
-                console.log("🚀 Fetching user subscription...");
-                console.log("🔑 Token gửi lên:", token);
+    // Dùng useCallback để tối ưu hóa việc gọi hàm fetchUserSubscription
+    const refreshData = () => {
+        setRefresh((prev) => !prev); // Đổi state để trigger re-render
+        setChartKey((prevKey) => prevKey + 1); // Cập nhật biểu đồ
+    };
 
-                const response = await fetch(`http://localhost:5001/api/subscription/user/${userEmail}`, {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                    },
-                });
+    const fetchUserSubscription = useCallback(async (token) => {
+        try {
+            console.log("Fetching user subscription...");
+            const response = await fetch(`http://localhost:5001/api/subscription/user/${userEmail}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            });
 
-                console.log("📡 API Response Status:", response.status);
-
-                if (!response.ok) {
-                    console.error("❌ Lỗi khi lấy subscription:", response.statusText);
-                    return null;
-                }
-
-                const data = await response.json();
-                console.log("✅ API trả về:", data);
-                return data;
-            } catch (error) {
-                console.error("🚨 Fetch error:", error);
+            if (!response.ok) {
+                console.error("Lỗi khi lấy subscription:", response.statusText);
                 return null;
             }
-        };
 
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Fetch error:", error);
+            return null;
+        }
+    }, [userEmail]);
+
+    useEffect(() => {
         const storedToken = localStorage.getItem("userToken");
-        console.log("🔄 Checking UserContext values...");
-        console.log("User Email:", userEmail);
-        console.log("User Token (from Context):", userToken);
-        console.log("LocalStorage Token:", storedToken);
-
-        // Nếu context chưa có token, nhưng localStorage có → Cập nhật context
 
         if (!userEmail || (!userToken && !storedToken)) {
-            console.log("⏹️ Không có userEmail hoặc Token, dừng API");
             return;
         }
 
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [plansData, userSubData] = await Promise.all([
-                    fetchSubscriptionPlans(),
-                    fetchUserSubscription(userToken || storedToken),
-                ]);
-
-                if (plansData) setPlans(plansData);
+                const userSubData = await fetchUserSubscription(userToken || storedToken);
                 if (userSubData) {
-                    console.log("📢 Cập nhật state userSubscription trước khi set:", userSubData);
                     setUserSubscription(userSubData);
-                    console.log("📢 userSubscription sau khi set:", userSubscription); // Đây có thể vẫn là giá trị cũ do React cập nhật async
                 }
             } catch (error) {
-                console.error("🚨 Error fetching data:", error);
+                console.error("Error fetching data:", error);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [userEmail, userToken]);
-
-    // 📌 Theo dõi khi `userSubscription` thay đổi
-    useEffect(() => {
-        console.log("📢 User subscription updated:", userSubscription);
-    }, [userSubscription]);
+    }, [userEmail, userToken, refresh, fetchUserSubscription]);
 
     const handleSubscribe = (plan) => {
         navigate(`/checkout/${plan.planId}`, { state: { plan } });
     };
-
+    useEffect(() => {
+        fetchSubscriptionPlans(); // Gọi API lấy danh sách gói đăng ký
+    }, []);
     const fullName = firstName && lastName ? `${firstName} ${lastName}`.trim() : "User";
 
     const planImages = {
@@ -163,8 +150,22 @@ const Maindashboard = () => {
             {/* Biểu đồ tăng trưởng thai nhi */}
             <Box sx={{ marginTop: 3 }}>
                 <Typography variant="h5" sx={{ marginBottom: 2 }}>Biểu đồ tăng trưởng thai nhi</Typography>
-                <FetalGrowthChart />
+                <FetalGrowthChart key={chartKey} />
             </Box>
+
+            <Box sx={{ marginTop: 3, textAlign: "center" }}>
+                <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
+                    Nhập chỉ số thai nhi
+                </Button>
+            </Box>
+
+            {/* Popup nhập chỉ số thai nhi */}
+            <Modal open={open} onClose={() => setOpen(false)}>
+                <Paper sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 400, padding: 3 }}>
+                    <Typography variant="h6" sx={{ marginBottom: 2 }}>Nhập chỉ số thai nhi</Typography>
+                    <AddFetalGrowth onClose={() => setOpen(false)} onSuccess={refreshData} />
+                </Paper>
+            </Modal>
 
             {/* Gói đăng ký */}
             <Box sx={{ marginTop: 4 }}>
