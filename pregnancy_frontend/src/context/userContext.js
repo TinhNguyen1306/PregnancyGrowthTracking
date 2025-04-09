@@ -57,7 +57,7 @@ export const UserProvider = ({ children }) => {
         if (savedUserInfo) {
             try {
                 const user = JSON.parse(savedUserInfo);
-                setUserId(user.id || null);
+                setUserId(user.userId || user.id || null);
                 setUserEmail(user.email || "");
                 setFirstName(user.firstName || "");
                 setLastName(user.lastName || "");

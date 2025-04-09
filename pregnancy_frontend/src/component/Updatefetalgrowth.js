@@ -3,10 +3,10 @@ import { Grid, Box, Paper, TextField, Button, Typography, FormControl, InputLabe
 import { UserContext } from "../context/userContext";
 
 const UpdateFetalGrowth = ({ onClose, initialData }) => {
-    const { userId } = useContext(UserContext);
+    const { userId, loading } = useContext(UserContext);
     const [formData, setFormData] = useState({
-        weight: initialData?.weight || "",
-        length: initialData?.length || "",
+        weight: initialData?.weight?.toString() || "",
+        length: initialData?.length?.toString() || "",
         date: initialData?.date || "",
         week: initialData?.week || "",
     });
@@ -45,12 +45,16 @@ const UpdateFetalGrowth = ({ onClose, initialData }) => {
                     if (!response.ok) throw new Error("Không thể lấy dữ liệu cho tuần này!");
 
                     const data = await response.json();
-                    // Update formData with fetched data
-                    setFormData((prev) => ({
-                        ...prev,
-                        weight: data.weight || "",
-                        length: data.length || "",
-                    }));
+                    if (data.length > 0) {
+                        const item = data[0];
+                        setFormData((prev) => ({
+                            ...prev,
+                            weight: item.weight?.toString() || "",
+                            length: item.length?.toString() || "",
+                        }));
+                    } else {
+                        setError("Không tìm thấy dữ liệu cho tuần này!");
+                    }
                 } catch (error) {
                     setError(error.message || "Có lỗi xảy ra khi lấy dữ liệu!");
                 }
@@ -59,6 +63,12 @@ const UpdateFetalGrowth = ({ onClose, initialData }) => {
             fetchFetalGrowthData();
         }
     }, [formData.week]);
+
+    useEffect(() => {
+        if (!loading && !userId) {
+            setError("Lỗi: Không tìm thấy userId trong context.");
+        }
+    }, [loading, userId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -73,6 +83,7 @@ const UpdateFetalGrowth = ({ onClose, initialData }) => {
             return;
         }
         if (!initialData?.id) {
+
             setError("Lỗi: Không tìm thấy ID của dữ liệu cần cập nhật.");
             return;
         }

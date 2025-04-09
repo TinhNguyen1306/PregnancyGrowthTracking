@@ -30,6 +30,7 @@ app.use("/api/subscription", require("./routes/subscriptionRoutes"));
 app.use("/api/fetalgrowth", require("./routes/fetalGrowthRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/members", require("./routes/memberRoutes"));
+app.use("/api/reminders", require("./routes/reminderRoutes"));
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

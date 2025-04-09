@@ -32,7 +32,7 @@ import authService from "../service/authService";
 function Register({ closeModal }) {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
-    const [gender, setGender] = useState("");
+    const [gender, setGender] = useState("female");
     const [dob, setDob] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -47,7 +47,20 @@ function Register({ closeModal }) {
         let newErrors = {};
         if (!firstName.trim()) newErrors.firstName = "First Name is required";
         if (!lastName.trim()) newErrors.lastName = "Last Name is required";
-        if (!dob) newErrors.dob = "Date of Birth is required";
+        if (!dob) {
+            newErrors.dob = "Date of Birth is required";
+        } else {
+            const today = new Date();
+            const birthDate = new Date(dob);
+            const age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            const isUnder20 = m < 0 || (m === 0 && today.getDate() < birthDate.getDate());
+
+            if (age < 20 || (age === 20 && isUnder20)) {
+                newErrors.dob = "Bạn phải đủ 20 tuổi để đăng ký";
+            }
+        }
+
         if (!email.match(/^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,4}$/)) {
             newErrors.email = "Invalid email format";
         }
@@ -212,16 +225,6 @@ function Register({ closeModal }) {
                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                             <Wc color="primary" sx={{ mr: 1 }} />
                                             Nữ
-                                        </Box>
-                                    }
-                                />
-                                <FormControlLabel
-                                    value="male"
-                                    control={<Radio />}
-                                    label={
-                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <Wc color="primary" sx={{ mr: 1 }} />
-                                            Nam
                                         </Box>
                                     }
                                 />

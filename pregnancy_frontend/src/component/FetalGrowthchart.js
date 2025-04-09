@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Typography, Grid, CircularProgress, Button, Alert } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -43,6 +44,7 @@ const FetalGrowthChart = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [alertMessage, setAlertMessage] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchGrowthData = async () => {
@@ -129,7 +131,12 @@ const FetalGrowthChart = () => {
             {alertMessage && (
                 <Alert severity="warning" sx={{ marginBottom: 2 }}>
                     {alertMessage}
-                    <Button variant="outlined" color="secondary" sx={{ marginLeft: 2 }}>
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        sx={{ marginLeft: 2 }}
+                        onClick={() => navigate("/reminders")}
+                    >
                         Đặt lịch tư vấn
                     </Button>
                 </Alert>
@@ -157,6 +164,7 @@ const FetalGrowthChart = () => {
                                     offset: 0
 
                                 }}
+                            // domain={[0, 20000]}
                             />
                             <Tooltip
                                 formatter={(value, name) => [`${value} ${name.includes("Cân nặng") ? "g" : "cm"}`, name]}

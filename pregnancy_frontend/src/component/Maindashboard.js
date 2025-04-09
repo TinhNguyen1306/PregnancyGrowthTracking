@@ -177,14 +177,20 @@ const Maindashboard = () => {
             </Box>
 
             <Box sx={{ marginTop: 3, textAlign: "center" }}>
-                <Button variant="contained" color="primary" onClick={() => setOpenAdd(true)}>
+                <Button variant="contained" color="primary" onClick={() => setOpenAdd(true)} sx={{
+                    background: 'linear-gradient(135deg, #FFDEE9 30%, #B5FFFC 100%)',
+                    color: '#333', padding: "12px", fontSize: "16px", borderRadius: 4
+                }}>
                     Thêm chỉ số thai nhi
                 </Button>
             </Box>
 
             {/* Button cập nhật chỉ số thai nhi */}
             <Box sx={{ marginTop: 2, textAlign: "center" }}>
-                <Button variant="contained" color="secondary" onClick={() => setOpenUpdate(true)}>
+                <Button variant="contained" color="secondary" onClick={() => setOpenUpdate(true)} sx={{
+                    background: 'linear-gradient(135deg, #FFDEE9 30%, #B5FFFC 100%)',
+                    color: '#333', padding: "12px", fontSize: "16px", borderRadius: 4
+                }}>
                     Cập nhật chỉ số thai nhi
                 </Button>
             </Box>

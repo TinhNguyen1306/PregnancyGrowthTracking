@@ -6,6 +6,8 @@ import Dashboard from "./pages/Dashboard";
 import Checkout from "./pages/Checkout";
 import Home from "./pages/Home";
 import Showsubscribed from "./pages/Showsubscribed";
+import CreateReminder from "./pages/Remider";
+import ReminderList from "./component/GetallRemider";
 import { UserProvider } from "./context/userContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -22,6 +24,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/showsubscribed" element={<Showsubscribed />} />
+            <Route path="/reminders" element={<CreateReminder />} />
+            <Route path="/reminderslist" element={<ReminderList />} />
           </Routes>
         </UserProvider>
       </Router>
